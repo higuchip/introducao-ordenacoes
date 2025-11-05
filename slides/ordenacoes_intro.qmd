@@ -1,0 +1,927 @@
+---
+title: "Introdução às Ordenações"
+subtitle: "Simplificando Dados Complexos de Vegetação"
+author: "Pedro Higuchi"
+institute: "UDESC - Universidade do Estado de Santa Catarina"
+date: today
+format:
+  revealjs:
+    theme: default
+    slide-number: true
+    footer: "Descrição e Análise da Vegetação"
+    incremental: false
+    transition: slide
+editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup}
+#| include: false
+# Configurações globais
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center"
+)
+
+# Carregar pacotes
+library(vegan)
+library(dplyr)
+library(knitr)
+```
+
+## O que vamos aprender hoje?
+
+-   O que é ordenação e para que serve
+
+-   Como visualizar dados complexos
+
+-   Três técnicas básicas: PCA, DCA e NMDS
+
+-   Qual método usar em cada situação
+
+-   Prática com dados reais da Floresta com Araucária
+
+**Objetivo: Tornar dados complicados mais fáceis de entender!** 📊→📈
+
+## O Problema
+
+Imagine que você mediu:
+
+-   50 parcelas de floresta
+
+-   90 espécies diferentes de árvores
+
+-   10 variáveis de solo em cada parcela
+
+**Pergunta: Como visualizar tudo isso em um gráfico?** 🤔
+
+**Resposta: Não dá! São muitas dimensões...**
+
+**Solução: ORDENAÇÃO = resumir em 2 ou 3 dimensões que você pode ver!**
+
+## Analogia: Índice de Vegetação (NDVI)
+
+::::: columns
+::: {.column width="50%"}
+**Sensor multiespectral:**
+
+-   🔴 Vermelho (RED)
+-   🌿 Infravermelho (NIR)
+-   🔵 Azul, 🟢 Verde
+-   Outras bandas...
+
+**→ Múltiplas dimensões**
+:::
+
+::: {.column width="50%"}
+**Índice NDVI:**
+
+$$NDVI = \frac{NIR - RED}{NIR + RED}$$
+
+-   Único número (-1 a +1)
+-   Resume "saúde vegetal"
+
+**→ 10+ bandas → 1 índice**
+:::
+:::::
+
+NDVI resume bandas espectrais \| PCA resume dados ambientais por exemplo
+
+**10 Variáveis ambientais → PC1 e PC2** 🌲
+
+## O que descobrimos com ordenação?
+
+-   Parcelas parecidas ficam próximas no gráfico
+
+-   Parcelas diferentes ficam distantes
+
+-   Gradientes ambientais (fertilidade, altitude, umidade)
+
+-   Grupos naturais de parcelas ou espécies
+
+-   Fatores mais importantes que explicam as diferenças
+
+## Nossos Dados Exemplo
+
+**Floresta Ombrófila Mista (Floresta com Araucária)**
+
+**Vegetação:**
+
+-   50 parcelas
+-   90 espécies de árvores
+-   2.837 indivíduos
+-   Espécie principal: *Araucaria angustifolia*
+
+**Ambiente:**
+
+-   pH do solo
+-   Nutrientes (P, K, Ca, Mg)
+-   Matéria orgânica
+-   Altitude
+-   Declividade
+
+## Dois Tipos de Ordenação
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 4
+library(DiagrammeR)
+
+grViz("
+digraph tipos {
+  graph [rankdir = LR, bgcolor = transparent]
+  node [shape = box, style = filled, fontname = Arial, fontsize = 14]
+  
+  A [label = 'Seus dados', fillcolor = '#2C5F2D', fontcolor = white]
+  B [label = 'NÃO-RESTRITA\n\nBusca padrões\nlivremente', fillcolor = 'lightblue']
+  C [label = 'RESTRITA\n\nTesta se variáveis\nexplicam padrões', fillcolor = 'lightyellow']
+  
+  A -> B
+  A -> C
+}
+")
+```
+
+**Hoje vamos focar em ordenação NÃO-RESTRITA (exploração inicial)**
+
+## PCA - Análise de Componentes Principais
+
+
+**Quando usar:**
+
+- Dados ambientais (solo, clima, topografia)
+- Gradientes curtos (< 3 SD)
+- Poucos zeros na matriz de dados
+
+**Ideia básica: Encontra as direções de maior variação nos dados**
+
+## O que são Gradientes Curtos? 📏
+
+**Gradiente < 3 SD = Condições ambientais homogêneas**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+**EXEMPLO 1: Parcelas em encosta sul**
+
+- Condições similares
+- Variação pequena
+```
+P1: pH 5.2, Ca 4.5, Alt 920m
+P2: pH 5.5, Ca 5.1, Alt 935m
+P3: pH 5.0, Ca 4.2, Alt 915m
+```
+
+✅ pH: 5.0-5.5 (variação 0.5)
+
+✅ Ca: 4.2-5.1 (variação 0.9)
+
+✅ Altitude similar
+:::
+
+::: {.column width="50%"}
+**EXEMPLO 2: Topo, enconsta e baixada**
+
+- Condições muito diferentes
+- Variação grande
+```
+P1: pH 6.5, Ca 12.5, Alt 850m
+P15: pH 5.5, Ca 5.2, Alt 950m
+P30: pH 4.0, Ca 1.2, Alt 1100m
+```
+
+❌ pH: 4.0-6.5 (variação 2.5)
+
+❌ Ca: 1.2-12.5 (variação 11.3)
+
+❌ Altitude muito diferente
+:::
+
+::::
+
+## Entendendo o SD (Desvio Padrão)
+
+**SD = Standard Deviation** - unidade que mede a **mudança nas condições ambientais**
+
+**Interpretação prática com variáveis de solo:**
+
+- **< 3 SD** = Condições variam pouco → ambiente homogêneo
+- **> 4 SD** = Condições variam muito → ambiente heterogêneo
+
+## Entendendo o SD (Desvio Padrão)
+
+**Exemplo comparativo:**
+```
+Gradiente CURTO (2.5 SD):
+pH:       5.0 → 5.5 → 5.2 → 5.3  (variação: 0.5 unidades)
+Cálcio:   4.2 → 5.1 → 4.5 → 4.8  (variação: 0.9 cmolc/kg)
+Altitude: 915 → 935 → 920 → 928  (variação: 20 m)
+         → Condições SIMILARES ✅ Use PCA/RDA
+
+Gradiente LONGO (5.0 SD):
+pH:       6.5 → 5.5 → 4.0         (variação: 2.5 unidades)
+Cálcio:   12.5 → 5.2 → 1.2        (variação: 11.3 cmolc/kg)
+Altitude: 850 → 950 → 1100        (variação: 250 m)
+         → Condições MUITO DIFERENTES ❌ Use DCA/CCA/NMDS
+```
+
+
+## ⚠️ Limitação Importante do PCA
+
+**PCA funciona mal com dados de vegetação porque:**
+
+- Muitas espécies ausentes = muitos zeros (50-80% da matriz)
+- Distribuições assimétricas
+- Pressuposição de linearidade não atendida
+
+
+## PCA - Exemplo Visual Passo a Passo
+
+```{r}
+# Criar dados simples (6 parcelas x 2 espécies)
+raw <- matrix(c(1, 2, 2.5, 2.5, 1, 0.5, 0, 1, 2, 4, 3, 1), nrow = 6)
+colnames(raw) <- c("s1", "s2")
+rownames(raw) <- c("p1", "p2", "p3", "p4", "p5", "p6")
+raw
+```
+
+Matriz de dados: 6 parcelas × 2 espécies
+
+## PASSO 1: Dados Originais
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+plot(raw, type = "b", ylim = c(-2, 4), xlim = c(-2, 3))
+
+```
+
+## PASSO 2: Dados Padronizados
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+# Dados brutos “centrados” (padronizados na mesma escala)
+cent <- scale(raw, scale = T)
+plot(raw, type = "b", ylim = c(-2, 4), xlim = c(-2, 3))
+lines(cent, type = "b", pch = 20)
+```
+
+## PASSO 3: PCA (Eixos Rotacionados)
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+# PCA - Rotacionar eixos
+library(vegan)
+o.pca <- prcomp(cent)
+scores(o.pca)
+plot(raw, type = "b", ylim = c(-2, 4), xlim = c(-2, 3))
+lines(cent, type = "b", pch = 20)
+lines(scores(o.pca), type = "b", pch = 5)
+```
+
+## PASSO 4: Biplot
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+biplot(o.pca)
+
+```
+
+## PCA com Dados Reais - Solo da FOM
+
+```{r}
+# Carregar dados de solo
+amb <- read.table("../data/environmental_data.csv", 
+                  header = TRUE, sep = ";", dec = ",", 
+                  row.names = 1)
+
+# Ver as primeiras linhas
+head(amb, 3)
+```
+
+## Executando PCA
+
+```{r}
+# Fazer PCA
+pca_solo <- rda(amb, scale = TRUE)
+
+# Quanto cada eixo explica?
+summary(pca_solo)
+
+```
+
+
+## O que são Autovalores? 🔢
+
+**Autovalores** medem **quanto de variação** cada eixo captura dos dados.
+
+## Executando PCA
+* Os loadings mostram a correlação entre cada variável original e os componentes principais!
+```{r}
+# Loadings PCA
+loadings <- scores(pca_solo, display = "species", choices = c(1, 2))
+loadings
+```
+
+## Visualizar PCA - Solo
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+# Gráfico (biplot)
+biplot(pca_solo, 
+       main = "PCA - Variáveis de Solo")
+      
+```
+
+**Interpretação:** Setas vermelhas = variáveis de solo \| números = parcelas
+
+## Como Interpretar o Biplot?
+
+-   **Setas longas** = variável importante
+
+-   **Setas curtas** = variável pouco importante
+
+-   **Setas no mesmo sentido** = correlacionadas (ex: Ca e Mg)
+
+-   **Setas opostas** = correlação negativa (ex: pH e Al)
+
+-   **Parcelas próximas** = solo parecido
+
+-   **Parcelas distantes** = solo diferente
+
+## NMDS - Para Dados de Vegetação
+
+**Quando a PCA não funciona bem...**
+
+**Problemas com dados de vegetação:**
+
+-   Muitas espécies ausentes (zeros)
+-   Distribuições muito assimétricas
+-   Gradientes muito longos
+
+**Solução: NMDS (Non-metric Multidimensional Scaling)**
+
+
+## NMDS - O Mais Flexível
+
+**Non-metric Multidimensional Scaling**
+
+**Vantagens:**
+
+-   Funciona com qualquer tipo de dado
+-   Não assume relações lineares
+-   Muito usado em ecologia moderna
+-   Robusto e confiável
+
+**Avaliação: Stress (quanto menor, melhor)**
+
+## NMDS na Prática
+
+```{r}
+# Fazer NMDS
+# Carregar dados de vegetação
+veg <- read.table("../data/vegetation_data.csv", 
+                  header = TRUE, sep = ";", dec = ",")
+
+# Criar matriz: parcelas (linhas) x espécies (colunas)
+matriz <- as.data.frame.matrix(table(veg$PC, veg$Species))
+
+
+nmds_result <- metaMDS(matriz, 
+                       k = 2,              # 2 dimensões
+                       distance = "bray",  # índice de Bray-Curtis
+                       trymax = 100)       # tentativas
+
+# Avaliar qualidade
+stress <- round(nmds_result$stress, 3)
+```
+
+**Stress: `r stress`**
+
+```{r}
+#| echo: false
+if(stress < 0.05) {
+  quality <- "**✓ Excelente!** Representação perfeita"
+} else if(stress < 0.10) {
+  quality <- "**✓ Muito bom!** Representação confiável"
+} else if(stress < 0.20) {
+  quality <- "**⚠ Aceitável**, mas use com cuidado"
+} else {
+  quality <- "**✗ Ruim**, não usar!"
+}
+```
+
+`r quality`
+
+## Visualizar NMDS
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+
+fig.nmds <- ordiplot(nmds_result, type = "none", font = 6, font.lab = 6, cex.axis = 1.2, 
+    cex.lab = 1.2, xlim = c(-2, 1), ylim = c(-1.5, 1))
+text(fig.nmds, "sites", col = "black", font = 6)
+stems <- colSums(matriz)
+sel <- orditorp(nmds_result, dis = "sp", priority = stems, pcol = "black", pch = "+", 
+    cex = 0.7)
+```
+
+## Visualizar Stress plot
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+stressplot(nmds_result)
+
+```
+
+
+## Comparação dos Métodos
+
+| Característica   | PCA      | NMDS       |
+|------------------|----------|------------|
+| Dificuldade      | ⭐ Fácil | ⭐⭐ Média |
+| Dados ambientais | ✅ Ótimo | ⚠️ OK      |
+| Dados vegetação  | ❌ Ruim  | ✅ Ótimo   |
+| Gradiente curto  | ✅ Use   | ⚠️ OK      |
+| Gradiente longo  | ❌ Não   | ✅ Use     |
+| Flexibilidade    | Baixa    | Alta       |
+| Medida qualidade | Autovalores | Stress  |
+| Pressuposições   | Linearidade | Nenhuma |
+
+
+## Resumo
+
+-   Ordenação resume dados complexos em 2-3 dimensões
+
+-   **PCA** → dados ambientais, gradientes curtos
+
+
+-   **NMDS** → mais flexível, avaliar pelo stress
+
+## Testando Diferenças Entre Grupos no PCA
+
+**Pergunta: Os setores (Norte/Sul) diferem ao longo do gradiente ambiental?**
+```{r}
+# Extrair escores do PC1
+eixosPCA <- scores(pca_solo, choices = 1:2, display = "sites")
+PCA1 <- eixosPCA[,1]
+
+# Verificar normalidade
+shapiro.test(PCA1)
+```
+
+**Se p > 0.05** → dados normais ✓ | **Se p < 0.05** → usar teste não-paramétrico
+
+## Comparando Setores - Teste t
+```{r}
+# Criar variável de exposição (exemplo)
+exposicao <- rep(c("Norte", "Sul"), each = 25)
+
+# Teste t
+t.test(PCA1 ~ exposicao)
+```
+
+**p < 0.05?** → Setores SÃO diferentes ambientalmente! ✓
+
+## Visualizando Grupos no NMDS
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+fig <- ordiplot(nmds_result, type = "none")
+
+# Parcelas por grupo
+points(fig, "sites", pch = 19, col = "blue", 
+       select = exposicao == "Norte")
+points(fig, "sites", pch = 1, col = "red", 
+       select = exposicao == "Sul")
+
+# Espécies
+sp.names <- make.cepnames(colnames(matriz))
+stems <- colSums(matriz)
+orditorp(nmds_result, "sp", label = sp.names,
+         priority = stems, pch = "+", pcol = "grey")
+
+legend("topleft", legend = c("Norte", "Sul"), 
+       pch = c(19, 1), col = c("blue", "red"))
+```
+
+
+## Como o Ambiente Explica a Vegetação?
+
+**Função `envfit()` ajusta variáveis ambientais ao NMDS**
+
+```{r}
+# Ajustar variáveis ambientais à ordenação
+env_fit <- envfit(nmds_result, amb, permutations = 999)
+env_fit
+```
+
+**r²** = força da correlação | **p < 0.05** = variável significativa
+
+## Visualizar NMDS + envfit
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+fig <- ordiplot(nmds_result, type = "none")
+
+# Parcelas por grupo
+points(fig, "sites", pch = 19, col = "blue", 
+       select = exposicao == "Norte")
+points(fig, "sites", pch = 1, col = "red", 
+       select = exposicao == "Sul")
+
+# Espécies
+sp.names <- make.cepnames(colnames(matriz))
+orditorp(nmds_result, "sp", label = sp.names,
+         priority = colSums(matriz), pch = "+", 
+         pcol = "grey", cex = 0.6)
+
+# Vetores ambientais (p < 0.05)
+plot(env_fit, p.max = 0.05, col = "darkgreen", 
+     cex = 0.8, lwd = 2)
+
+legend("topleft", legend = c("Norte", "Sul"), 
+       pch = c(19, 1), col = c("blue", "red"))
+```
+
+## Interpretando o envfit
+
+**Vetores ambientais:**
+
+- **Direção** → gradiente da variável
+- **Comprimento** → força da correlação  
+- **Ângulo** → correlação entre variáveis
+
+**Exemplo:**
+- Parcelas **Norte** → solos ácidos, baixo Ca/Mg
+- Parcelas **Sul** → solos férteis, alto Ca/Mg
+- pH e Altitude explicam composição de espécies
+
+## NMDS Simplificado (sem espécies)
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+fig <- ordiplot(nmds_result, type = "none")
+
+# Apenas parcelas
+points(fig, "sites", pch = 19, col = "blue", 
+       select = exposicao == "Norte")
+points(fig, "sites", pch = 1, col = "red", 
+       select = exposicao == "Sul")
+
+# Apenas vetores significativos
+plot(env_fit, p.max = 0.05, col = "darkgreen", 
+     cex = 1, lwd = 2.5)
+
+legend("topleft", legend = c("Norte", "Sul"), 
+       pch = c(19, 1), col = c("blue", "red"))
+```
+
+Gráfico mais limpo para visualizar padrões ambientais! 📊
+
+## PERMANOVA - Teste Multivariado
+
+**Testa se composição de espécies difere entre grupos**
+
+```{r}
+# PERMANOVA
+permanova_result <- adonis2(matriz ~ exposicao, 
+                            method = "bray",
+                            permutations = 999)
+permanova_result
+```
+
+**p < 0.05?** → Composição É diferente entre Norte/Sul!
+
+**R²** → % da variação explicada pela exposição
+
+## Teste de Homogeneidade de Dispersão
+
+**O que é betadisper?**
+
+Verifica se os grupos têm **dispersão** (variabilidade) semelhante
+
+**Por que isso importa?**
+
+- PERMANOVA pode detectar diferenças de dispersão OU de composição
+- Precisamos separar esses dois efeitos!
+
+
+## Análise de Dispersão (betadisper)
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+
+# Calcular distâncias de Bray-Curtis
+dist_bray <- vegdist(matriz, method = "bray")
+
+# Teste de dispersão entre grupos
+dispersao <- betadisper(dist_bray, exposicao)
+
+# Testar significância
+anova(dispersao)
+
+# Visualizar
+plot(dispersao, main = "Dispersão Multivariada por Setor")
+```
+
+## Interpretando o betadisper
+
+**Resultado do ANOVA:**
+
+- **p > 0.05** → Dispersões semelhantes ✅
+  - PERMANOVA confiável!
+  - Diferença é de composição
+
+- **p < 0.05** → Dispersões diferentes ⚠️
+  - Atenção! Grupos têm variabilidades distintas
+  - PERMANOVA pode estar detectando isso, não composição
+
+## Exemplo Visual - Dispersões Iguais
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+# Simular dados com mesma dispersão
+set.seed(123)
+grupo1 <- cbind(rnorm(20, 0, 1), rnorm(20, 0, 1))
+grupo2 <- cbind(rnorm(20, 3, 1), rnorm(20, 3, 1))
+dados_igual <- rbind(grupo1, grupo2)
+grupos <- factor(rep(c("Norte", "Sul"), each = 20))
+
+plot(dados_igual, col = c("blue", "red")[grupos], 
+     pch = 19, cex = 1.2,
+     main = "Dispersões IGUAIS (p > 0.05)",
+     xlab = "NMDS1", ylab = "NMDS2")
+legend("topright", legend = c("Norte", "Sul"), 
+       col = c("blue", "red"), pch = 19)
+```
+
+Grupos separados, mas com variabilidade similar
+
+## Exemplo Visual - Dispersões Diferentes
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+# Simular dados com dispersões diferentes
+set.seed(123)
+grupo1 <- cbind(rnorm(20, 0, 2.5), rnorm(20, 0, 2.5))  # mais disperso
+grupo2 <- cbind(rnorm(20, 3, 0.5), rnorm(20, 3, 0.5))  # menos disperso
+dados_dif <- rbind(grupo1, grupo2)
+
+plot(dados_dif, col = c("blue", "red")[grupos], 
+     pch = 19, cex = 1.2,
+     main = "Dispersões DIFERENTES (p < 0.05)",
+     xlab = "NMDS1", ylab = "NMDS2")
+legend("topright", legend = c("Norte", "Sul"), 
+       col = c("blue", "red"), pch = 19)
+```
+
+Norte muito variável, Sul homogêneo → problema!
+
+
+## Resumo betadisper
+
+**O que faz:** Testa se grupos têm variabilidade semelhante
+
+**Quando usar:** Sempre DEPOIS do PERMANOVA significativo
+
+**Interpretação conjunta:**
+
+| PERMANOVA | betadisper | Conclusão |
+|-----------|------------|-----------|
+| p < 0.05  | p > 0.05   | ✅ Composição diferente |
+| p < 0.05  | p < 0.05   | ⚠️ Dispersão diferente |
+| p > 0.05  | qualquer   | Grupos não diferem |
+
+## PCoA - Análise de Coordenadas Principais
+
+**Principal Coordinates Analysis (PCoA)**
+
+Também conhecida como **MDS (Metric Multidimensional Scaling)**
+
+**O que faz:** Representa relações entre parcelas usando qualquer índice de dissimilaridade
+
+**Propriedade importante:** Transforma dissimilaridades em distâncias Euclidianas
+
+## Como PCoA funciona?
+
+**Entrada:** Matriz de dissimilaridades entre parcelas
+
+**Saída:** Eixos ortogonais (independentes) ordenados por importância
+
+**Relação com outros métodos:**
+
+- PCoA com distância Euclidiana = PCA
+- PCoA com distância qui-quadrado ≈ CA
+- PCoA com Bray-Curtis = ideal para vegetação
+
+## PCoA na Prática
+
+```{r}
+# Calcular matriz de dissimilaridade
+dist_bray <- vegdist(matriz, method = "bray")
+
+# Executar PCoA
+pcoa_result <- cmdscale(dist_bray, k = 2, eig = TRUE)
+
+# Ver autovalores (% de variação)
+eigenvalues <- pcoa_result$eig
+var_explained <- eigenvalues / sum(eigenvalues) * 100
+
+cat("Eixo 1:", round(var_explained[1], 1), "%\n")
+cat("Eixo 2:", round(var_explained[2], 1), "%\n")
+```
+
+## ⚠️ Problema: Autovalores Negativos
+
+**Quando usar índices não-métricos (ex: Bray-Curtis puro):**
+
+- Podem aparecer autovalores negativos
+- Eixos não podem ser plotados!
+
+**Soluções:**
+
+1. Transformar para métrico: `sqrt()` no Bray-Curtis ✅
+2. Correções: Lingoes ou Cailliez
+3. Usar NMDS (aceita qualquer índice)
+
+```{r}
+# Bray-Curtis transformado (métrico)
+dist_bray_sqrt <- sqrt(dist_bray)
+pcoa_result <- cmdscale(dist_bray_sqrt, k = 2, eig = TRUE)
+```
+
+## Visualizar PCoA
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+
+scores_pcoa <- pcoa_result$points
+
+plot(scores_pcoa[,1], scores_pcoa[,2],
+     xlab = paste0("PCoA1 (", round(var_explained[1], 1), "%)"),
+     ylab = paste0("PCoA2 (", round(var_explained[2], 1), "%)"),
+     main = "PCoA - Composição de Espécies",
+     pch = 19, 
+     col = ifelse(exposicao == "Norte", "blue", "red"),
+     cex = 1.5)
+
+legend("topright", legend = c("Norte", "Sul"),
+       col = c("blue", "red"), pch = 19)
+```
+
+## PCoA vs NMDS - Diferenças Fundamentais
+
+| Característica | PCoA | NMDS |
+|----------------|------|------|
+| **Algoritmo** | Analítico (único) | Iterativo (múltiplos) |
+| **Usa valores** | Dissimilaridades reais | Rankings |
+| **Reprodutibilidade** | Sempre igual | Pode variar |
+| **Nº de eixos** | Dado pelos dados | Você escolhe (k) |
+| **% explicada** | Sim (autovalores) | Não |
+| **Qualidade** | Autovalores | Stress |
+| **Espécies** | Projetar depois | Projetar depois |
+
+## Relação PCoA → NMDS
+
+**Conceito importante:**
+
+NMDS geralmente usa PCoA como **configuração inicial**
+
+→ NMDS otimiza a solução do PCoA iterativamente
+
+→ Tenta representar mais variação em menos eixos
+
+**Na prática:** NMDS "melhora" o PCoA quando stress < 0.20
+
+## Quando usar cada um?
+
+::::: columns
+::: {.column width="50%"}
+**Use PCoA quando:**
+
+✓ Precisar de % variação explicada
+
+✓ Quiser solução única/reprodutível
+
+✓ Dataset grande (>100 parcelas)
+
+✓ Análise rápida
+
+✓ Comparar com PCA
+
+✓ Necessidade de eixos ortogonais
+:::
+
+::: {.column width="50%"}
+**Use NMDS quando:**
+
+✓ Quiser melhor representação visual
+
+✓ Índice não-métrico (sem transformar)
+
+✓ Publicar figura principal
+
+✓ Stress < 0.20
+
+✓ Dataset pequeno/médio
+:::
+:::::
+
+**Dica:** Rode os dois! NMDS otimiza PCoA quando funciona bem
+
+## Comparação Visual
+
+```{r}
+#| fig-width: 12
+#| fig-height: 5
+
+par(mfrow = c(1, 2))
+
+# PCoA
+plot(scores_pcoa[,1], scores_pcoa[,2],
+     xlab = paste0("PCoA1 (", round(var_explained[1], 1), "%)"),
+     ylab = paste0("PCoA2 (", round(var_explained[2], 1), "%)"),
+     main = "PCoA - Solução Analítica",
+     pch = 19, 
+     col = ifelse(exposicao == "Norte", "blue", "red"))
+
+# NMDS
+plot(nmds_result, type = "n", main = paste0("NMDS - Stress = ", 
+     round(nmds_result$stress, 3)))
+points(nmds_result, display = "sites", pch = 19,
+       col = ifelse(exposicao == "Norte", "blue", "red"))
+
+par(mfrow = c(1, 1))
+```
+
+## Resumo: PCoA & NMDS
+
+**PCoA:**
+- Solução analítica única e reprodutível
+- Fornece % variação explicada
+- Rápido, ideal para grandes datasets
+- Prefira índices métricos ou transforme
+
+**NMDS:**
+- Solução iterativa (otimiza PCoA)
+- Avaliado por stress (< 0.20)
+- Melhor representação visual
+- Aceita qualquer índice
+
+**Ambos:**
+- Trabalham com matrizes de dissimilaridade
+- Espécies adicionadas por weighted averaging
+- Use Bray-Curtis para dados de vegetação
+
+## Próximos Passos
+
+**Para aprender mais:**
+
+
+-   Ordenações restritas (RDA, CCA)
+-   Partição de variância
+
+**Contato:**
+
+📧 Prof. Pedro Higuchi
+
+🏫 UDESC - Lages/SC
+
+🌲 Lab. Dendrologia e Fitossociologia
+
+## Obrigado!
+
+**Boas análises!** 🌳📊
+
