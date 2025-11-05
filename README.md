@@ -19,7 +19,7 @@ Este repositório contém material didático desenvolvido para a disciplina **De
 
 ## 📊 Apresentação
 
-**[🔗 Acesse a apresentação online](https://seu-usuario.github.io/introducao-ordenacoes/)**
+**[🔗 Acesse a apresentação online](https://higuchip.github.io/introducao-ordenacoes/)**
 
 ## 📁 Estrutura do Repositório
 
@@ -54,7 +54,7 @@ install.packages(c("vegan", "dplyr", "knitr", "DiagrammeR"))
 
 **Clonar o repositório:**
 ```bash
-git clone https://github.com/seu-usuario/introducao-ordenacoes.git
+git clone https://github.com/higuchip/introducao-ordenacoes.git
 cd introducao-ordenacoes
 ```
 
@@ -109,7 +109,7 @@ Os dados utilizados são da **Floresta Ombrófila Mista (Floresta com Araucária
 
 Contribuições são bem-vindas! Se você encontrar erros ou tiver sugestões:
 
-1. Abra uma [Issue](https://github.com/seu-usuario/introducao-ordenacoes/issues)
+1. Abra uma [Issue](https://github.com/higuchip/introducao-ordenacoes/issues)
 2. Faça um Fork do repositório
 3. Crie uma branch para sua feature (`git checkout -b minha-feature`)
 4. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
