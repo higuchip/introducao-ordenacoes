@@ -2,7 +2,13 @@
 
 > Material didático sobre análises de ordenação (PCA, NMDS, PCoA) para dados de vegetação
 
-[![R](https://img.shields.io/badge/R-%3E%3D%204.0.0-blue)](https://www.r-project.org/)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![R](https://img.shields.io/badge/R-%3E%3D%204.0.0-276DC3?logo=r)](https://www.r-project.org/)
+[![Quarto](https://img.shields.io/badge/Quarto-1.3+-75AADB?logo=quarto)](https://quarto.org)
+[![UDESC](https://img.shields.io/badge/UDESC-Lages%20SC-004d40)](https://www.udesc.br)
+[![Material Didático](https://img.shields.io/badge/Tipo-Material%20Didático-blueviolet)]()
+[![Português](https://img.shields.io/badge/Idioma-Português-green)]()
+[![Slides](https://img.shields.io/badge/Slides-Online-orange)](https://seu-usuario.github.io/introducao-ordenacoes/)
 
 ## 📚 Sobre
 
@@ -19,7 +25,7 @@ Este repositório contém material didático desenvolvido para a disciplina **De
 
 ## 📊 Apresentação
 
-**[🔗 Acesse a apresentação online](https://higuchip.github.io/introducao-ordenacoes/)**
+**[🔗 Acesse a apresentação online](https://higuchip.github.io/introducao-ordenacoes/index.html)**
 
 ## 📁 Estrutura do Repositório
 
