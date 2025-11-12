@@ -34,19 +34,24 @@ library(dplyr)
 library(knitr)
 ```
 
-## O que vamos aprender hoje?
+## O que vamos aprender ?
 
--   O que é ordenação e para que serve
+**Ordenações Não-Restritas (exploração):**
 
--   Como visualizar dados complexos
+-   PCA, DCA, NMDS, PCoA
 
--   Três técnicas básicas: PCA, DCA e NMDS
+**Ordenações Restritas (teste de hipóteses):**
 
--   Qual método usar em cada situação
+-   RDA e CCA
 
--   Prática com dados reais da Floresta com Araucária
+**Análises Avançadas:**
 
-**Objetivo: Tornar dados complicados mais fáceis de entender!** 📊→📈
+-   Partição da variância
+-   Testes multivariados (PERMANOVA, betadisper)
+
+**Prática:** Dados reais da Floresta com Araucária
+
+**Objetivo: Do básico ao avançado em análise multivariada!** 📊→📈
 
 ## O Problema
 
@@ -152,27 +157,26 @@ digraph tipos {
 
 ## PCA - Análise de Componentes Principais
 
-
 **Quando usar:**
 
-- Dados ambientais (solo, clima, topografia)
-- Gradientes curtos (< 3 SD)
-- Poucos zeros na matriz de dados
+-   Dados ambientais (solo, clima, topografia)
+-   Gradientes curtos (\< 3 SD)
+-   Poucos zeros na matriz de dados
 
 **Ideia básica: Encontra as direções de maior variação nos dados**
 
 ## O que são Gradientes Curtos? 📏
 
-**Gradiente < 3 SD = Condições ambientais homogêneas**
+**Gradiente \< 3 SD = Condições ambientais homogêneas**
 
-:::: {.columns}
-
+::::: columns
 ::: {.column width="50%"}
 **EXEMPLO 1: Parcelas em encosta sul**
 
-- Condições similares
-- Variação pequena
-```
+-   Condições similares
+-   Variação pequena
+
+```         
 P1: pH 5.2, Ca 4.5, Alt 920m
 P2: pH 5.5, Ca 5.1, Alt 935m
 P3: pH 5.0, Ca 4.2, Alt 915m
@@ -188,9 +192,10 @@ P3: pH 5.0, Ca 4.2, Alt 915m
 ::: {.column width="50%"}
 **EXEMPLO 2: Topo, enconsta e baixada**
 
-- Condições muito diferentes
-- Variação grande
-```
+-   Condições muito diferentes
+-   Variação grande
+
+```         
 P1: pH 6.5, Ca 12.5, Alt 850m
 P15: pH 5.5, Ca 5.2, Alt 950m
 P30: pH 4.0, Ca 1.2, Alt 1100m
@@ -202,8 +207,7 @@ P30: pH 4.0, Ca 1.2, Alt 1100m
 
 ❌ Altitude muito diferente
 :::
-
-::::
+:::::
 
 ## Entendendo o SD (Desvio Padrão)
 
@@ -211,13 +215,14 @@ P30: pH 4.0, Ca 1.2, Alt 1100m
 
 **Interpretação prática com variáveis de solo:**
 
-- **< 3 SD** = Condições variam pouco → ambiente homogêneo
-- **> 4 SD** = Condições variam muito → ambiente heterogêneo
+-   **\< 3 SD** = Condições variam pouco → ambiente homogêneo
+-   **\> 4 SD** = Condições variam muito → ambiente heterogêneo
 
 ## Entendendo o SD (Desvio Padrão)
 
 **Exemplo comparativo:**
-```
+
+```         
 Gradiente CURTO (2.5 SD):
 pH:       5.0 → 5.5 → 5.2 → 5.3  (variação: 0.5 unidades)
 Cálcio:   4.2 → 5.1 → 4.5 → 4.8  (variação: 0.9 cmolc/kg)
@@ -231,15 +236,13 @@ Altitude: 850 → 950 → 1100        (variação: 250 m)
          → Condições MUITO DIFERENTES ❌ Use DCA/CCA/NMDS
 ```
 
-
 ## ⚠️ Limitação Importante do PCA
 
 **PCA funciona mal com dados de vegetação porque:**
 
-- Muitas espécies ausentes = muitos zeros (50-80% da matriz)
-- Distribuições assimétricas
-- Pressuposição de linearidade não atendida
-
+-   Muitas espécies ausentes = muitos zeros (50-80% da matriz)
+-   Distribuições assimétricas
+-   Pressuposição de linearidade não atendida
 
 ## PCA - Exemplo Visual Passo a Passo
 
@@ -322,13 +325,14 @@ summary(pca_solo)
 
 ```
 
-
 ## O que são Autovalores? 🔢
 
 **Autovalores** medem **quanto de variação** cada eixo captura dos dados.
 
 ## Executando PCA
-* Os loadings mostram a correlação entre cada variável original e os componentes principais!
+
+-   Os loadings mostram a correlação entre cada variável original e os componentes principais!
+
 ```{r}
 # Loadings PCA
 loadings <- scores(pca_solo, display = "species", choices = c(1, 2))
@@ -375,7 +379,6 @@ biplot(pca_solo,
 
 **Solução: NMDS (Non-metric Multidimensional Scaling)**
 
-
 ## NMDS - O Mais Flexível
 
 **Non-metric Multidimensional Scaling**
@@ -394,14 +397,17 @@ biplot(pca_solo,
 ```{r}
 # Fazer NMDS
 # Carregar dados de vegetação
-veg <- read.table("../data/vegetation_data.csv", 
+veg <- read.table("../data/vegetation_data.csv",
                   header = TRUE, sep = ";", dec = ",")
 
 # Criar matriz: parcelas (linhas) x espécies (colunas)
 matriz <- as.data.frame.matrix(table(veg$PC, veg$Species))
 
+# Criar variável de exposição
+# 17 parcelas Norte + 33 parcelas Sul = 50 parcelas total
+exposicao <- c(rep("Norte", 17), rep("Sul", 33))
 
-nmds_result <- metaMDS(matriz, 
+nmds_result <- metaMDS(matriz,
                        k = 2,              # 2 dimensões
                        distance = "bray",  # índice de Bray-Curtis
                        trymax = 100)       # tentativas
@@ -452,33 +458,10 @@ stressplot(nmds_result)
 
 ```
 
-
-## Comparação dos Métodos
-
-| Característica   | PCA      | NMDS       |
-|------------------|----------|------------|
-| Dificuldade      | ⭐ Fácil | ⭐⭐ Média |
-| Dados ambientais | ✅ Ótimo | ⚠️ OK      |
-| Dados vegetação  | ❌ Ruim  | ✅ Ótimo   |
-| Gradiente curto  | ✅ Use   | ⚠️ OK      |
-| Gradiente longo  | ❌ Não   | ✅ Use     |
-| Flexibilidade    | Baixa    | Alta       |
-| Medida qualidade | Autovalores | Stress  |
-| Pressuposições   | Linearidade | Nenhuma |
-
-
-## Resumo
-
--   Ordenação resume dados complexos em 2-3 dimensões
-
--   **PCA** → dados ambientais, gradientes curtos
-
-
--   **NMDS** → mais flexível, avaliar pelo stress
-
 ## Testando Diferenças Entre Grupos no PCA
 
 **Pergunta: Os setores (Norte/Sul) diferem ao longo do gradiente ambiental?**
+
 ```{r}
 # Extrair escores do PC1
 eixosPCA <- scores(pca_solo, choices = 1:2, display = "sites")
@@ -488,20 +471,19 @@ PCA1 <- eixosPCA[,1]
 shapiro.test(PCA1)
 ```
 
-**Se p > 0.05** → dados normais ✓ | **Se p < 0.05** → usar teste não-paramétrico
+**Se p \> 0.05** → dados normais ✓ \| **Se p \< 0.05** → usar teste não-paramétrico
 
 ## Comparando Setores - Teste t
-```{r}
-# Criar variável de exposição (exemplo)
-exposicao <- rep(c("Norte", "Sul"), each = 25)
 
-# Teste t
+```{r}
+# Teste t (exposicao já foi criada anteriormente)
 t.test(PCA1 ~ exposicao)
 ```
 
-**p < 0.05?** → Setores SÃO diferentes ambientalmente! ✓
+**p \< 0.05?** → Setores SÃO diferentes ambientalmente! ✓
 
 ## Visualizando Grupos no NMDS
+
 ```{r}
 #| fig-width: 10
 #| fig-height: 7
@@ -524,7 +506,6 @@ legend("topleft", legend = c("Norte", "Sul"),
        pch = c(19, 1), col = c("blue", "red"))
 ```
 
-
 ## Como o Ambiente Explica a Vegetação?
 
 **Função `envfit()` ajusta variáveis ambientais ao NMDS**
@@ -535,7 +516,7 @@ env_fit <- envfit(nmds_result, amb, permutations = 999)
 env_fit
 ```
 
-**r²** = força da correlação | **p < 0.05** = variável significativa
+**r²** = força da correlação \| **p \< 0.05** = variável significativa
 
 ## Visualizar NMDS + envfit
 
@@ -569,14 +550,11 @@ legend("topleft", legend = c("Norte", "Sul"),
 
 **Vetores ambientais:**
 
-- **Direção** → gradiente da variável
-- **Comprimento** → força da correlação  
-- **Ângulo** → correlação entre variáveis
+-   **Direção** → gradiente da variável
+-   **Comprimento** → força da correlação\
+-   **Ângulo** → correlação entre variáveis
 
-**Exemplo:**
-- Parcelas **Norte** → solos ácidos, baixo Ca/Mg
-- Parcelas **Sul** → solos férteis, alto Ca/Mg
-- pH e Altitude explicam composição de espécies
+**Exemplo:** - Parcelas **Norte** → solos ácidos, baixo Ca/Mg - Parcelas **Sul** → solos férteis, alto Ca/Mg - pH e Altitude explicam composição de espécies
 
 ## NMDS Simplificado (sem espécies)
 
@@ -614,7 +592,7 @@ permanova_result <- adonis2(matriz ~ exposicao,
 permanova_result
 ```
 
-**p < 0.05?** → Composição É diferente entre Norte/Sul!
+**p \< 0.05?** → Composição É diferente entre Norte/Sul!
 
 **R²** → % da variação explicada pela exposição
 
@@ -626,9 +604,8 @@ Verifica se os grupos têm **dispersão** (variabilidade) semelhante
 
 **Por que isso importa?**
 
-- PERMANOVA pode detectar diferenças de dispersão OU de composição
-- Precisamos separar esses dois efeitos!
-
+-   PERMANOVA pode detectar diferenças de dispersão OU de composição
+-   Precisamos separar esses dois efeitos!
 
 ## Análise de Dispersão (betadisper)
 
@@ -653,13 +630,12 @@ plot(dispersao, main = "Dispersão Multivariada por Setor")
 
 **Resultado do ANOVA:**
 
-- **p > 0.05** → Dispersões semelhantes ✅
-  - PERMANOVA confiável!
-  - Diferença é de composição
-
-- **p < 0.05** → Dispersões diferentes ⚠️
-  - Atenção! Grupos têm variabilidades distintas
-  - PERMANOVA pode estar detectando isso, não composição
+-   **p \> 0.05** → Dispersões semelhantes ✅
+    -   PERMANOVA confiável!
+    -   Diferença é de composição
+-   **p \< 0.05** → Dispersões diferentes ⚠️
+    -   Atenção! Grupos têm variabilidades distintas
+    -   PERMANOVA pode estar detectando isso, não composição
 
 ## Exemplo Visual - Dispersões Iguais
 
@@ -708,7 +684,6 @@ legend("topright", legend = c("Norte", "Sul"),
 
 Norte muito variável, Sul homogêneo → problema!
 
-
 ## Resumo betadisper
 
 **O que faz:** Testa se grupos têm variabilidade semelhante
@@ -717,11 +692,11 @@ Norte muito variável, Sul homogêneo → problema!
 
 **Interpretação conjunta:**
 
-| PERMANOVA | betadisper | Conclusão |
-|-----------|------------|-----------|
-| p < 0.05  | p > 0.05   | ✅ Composição diferente |
-| p < 0.05  | p < 0.05   | ⚠️ Dispersão diferente |
-| p > 0.05  | qualquer   | Grupos não diferem |
+| PERMANOVA | betadisper | Conclusão               |
+|-----------|------------|-------------------------|
+| p \< 0.05 | p \> 0.05  | ✅ Composição diferente |
+| p \< 0.05 | p \< 0.05  | ⚠️ Dispersão diferente  |
+| p \> 0.05 | qualquer   | Grupos não diferem      |
 
 ## PCoA - Análise de Coordenadas Principais
 
@@ -741,9 +716,9 @@ Também conhecida como **MDS (Metric Multidimensional Scaling)**
 
 **Relação com outros métodos:**
 
-- PCoA com distância Euclidiana = PCA
-- PCoA com distância qui-quadrado ≈ CA
-- PCoA com Bray-Curtis = ideal para vegetação
+-   PCoA com distância Euclidiana = PCA
+-   PCoA com distância qui-quadrado ≈ CA
+-   PCoA com Bray-Curtis = ideal para vegetação
 
 ## PCoA na Prática
 
@@ -766,14 +741,14 @@ cat("Eixo 2:", round(var_explained[2], 1), "%\n")
 
 **Quando usar índices não-métricos (ex: Bray-Curtis puro):**
 
-- Podem aparecer autovalores negativos
-- Eixos não podem ser plotados!
+-   Podem aparecer autovalores negativos
+-   Eixos não podem ser plotados!
 
 **Soluções:**
 
-1. Transformar para métrico: `sqrt()` no Bray-Curtis ✅
-2. Correções: Lingoes ou Cailliez
-3. Usar NMDS (aceita qualquer índice)
+1.  Transformar para métrico: `sqrt()` no Bray-Curtis ✅
+2.  Correções: Lingoes ou Cailliez
+3.  Usar NMDS (aceita qualquer índice)
 
 ```{r}
 # Bray-Curtis transformado (métrico)
@@ -803,15 +778,15 @@ legend("topright", legend = c("Norte", "Sul"),
 
 ## PCoA vs NMDS - Diferenças Fundamentais
 
-| Característica | PCoA | NMDS |
-|----------------|------|------|
-| **Algoritmo** | Analítico (único) | Iterativo (múltiplos) |
-| **Usa valores** | Dissimilaridades reais | Rankings |
-| **Reprodutibilidade** | Sempre igual | Pode variar |
-| **Nº de eixos** | Dado pelos dados | Você escolhe (k) |
-| **% explicada** | Sim (autovalores) | Não |
-| **Qualidade** | Autovalores | Stress |
-| **Espécies** | Projetar depois | Projetar depois |
+| Característica        | PCoA                   | NMDS                  |
+|-----------------------|------------------------|-----------------------|
+| **Algoritmo**         | Analítico (único)      | Iterativo (múltiplos) |
+| **Usa valores**       | Dissimilaridades reais | Rankings              |
+| **Reprodutibilidade** | Sempre igual           | Pode variar           |
+| **Nº de eixos**       | Dado pelos dados       | Você escolhe (k)      |
+| **% explicada**       | Sim (autovalores)      | Não                   |
+| **Qualidade**         | Autovalores            | Stress                |
+| **Espécies**          | Projetar depois        | Projetar depois       |
 
 ## Relação PCoA → NMDS
 
@@ -823,7 +798,7 @@ NMDS geralmente usa PCoA como **configuração inicial**
 
 → Tenta representar mais variação em menos eixos
 
-**Na prática:** NMDS "melhora" o PCoA quando stress < 0.20
+**Na prática:** NMDS "melhora" o PCoA quando stress \< 0.20
 
 ## Quando usar cada um?
 
@@ -835,7 +810,7 @@ NMDS geralmente usa PCoA como **configuração inicial**
 
 ✓ Quiser solução única/reprodutível
 
-✓ Dataset grande (>100 parcelas)
+✓ Dataset grande (\>100 parcelas)
 
 ✓ Análise rápida
 
@@ -853,7 +828,7 @@ NMDS geralmente usa PCoA como **configuração inicial**
 
 ✓ Publicar figura principal
 
-✓ Stress < 0.20
+✓ Stress \< 0.20
 
 ✓ Dataset pequeno/médio
 :::
@@ -888,40 +863,560 @@ par(mfrow = c(1, 1))
 
 ## Resumo: PCoA & NMDS
 
-**PCoA:**
-- Solução analítica única e reprodutível
-- Fornece % variação explicada
-- Rápido, ideal para grandes datasets
-- Prefira índices métricos ou transforme
+**PCoA:** - Solução analítica única e reprodutível - Fornece % variação explicada - Rápido, ideal para grandes datasets - Prefira índices métricos ou transforme
 
-**NMDS:**
-- Solução iterativa (otimiza PCoA)
-- Avaliado por stress (< 0.20)
-- Melhor representação visual
-- Aceita qualquer índice
+**NMDS:** - Solução iterativa (otimiza PCoA) - Avaliado por stress (\< 0.20) - Melhor representação visual - Aceita qualquer índice
 
-**Ambos:**
-- Trabalham com matrizes de dissimilaridade
-- Espécies adicionadas por weighted averaging
-- Use Bray-Curtis para dados de vegetação
+**Ambos:** - Trabalham com matrizes de dissimilaridade - Espécies adicionadas por weighted averaging - Use Bray-Curtis para dados de vegetação
 
-## Próximos Passos
+## 🔄 Ordenações Restritas
 
-**Para aprender mais:**
+**Não-restritas:** Exploram padrões (PCA, NMDS)
 
+**Restritas:** Testam hipóteses (RDA, CCA)
 
--   Ordenações restritas (RDA, CCA)
--   Partição de variância
+**Pergunta:** Ambiente explica a vegetação?
 
-**Contato:**
+## DCA - Diagnóstico de Gradiente 🎯
 
-📧 Prof. Pedro Higuchi
+**Objetivo:** Medir comprimento do gradiente
 
-🏫 UDESC - Lages/SC
+```{r}
+# Executar DCA
+dca_result <- decorana(matriz)
 
-🌲 Lab. Dendrologia e Fitossociologia
+# Extrair comprimento (em SD)
+cat("DCA1:", round(dca_result$evals[1], 2), "SD\n")
+cat("DCA2:", round(dca_result$evals[2], 2), "SD\n")
+```
+
+**Regra:** \< 3 SD = **RDA** \| \> 4 SD = **CCA**
+
+**💡 Execute DCA primeiro!**
+
+## Escolhendo o Método: Fluxograma 📊
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+library(DiagrammeR)
+
+grViz("
+digraph escolha {
+  graph [rankdir = TB, bgcolor = transparent]
+  node [shape = box, style = filled, fontname = Arial, fontsize = 11]
+
+  START [label = 'Rode DCA primeiro!', fillcolor = '#FF6B6B', fontcolor = white]
+  Q1 [label = 'Gradiente < 3 SD?', fillcolor = '#FFE66D', shape = diamond]
+  Q2 [label = 'Tem variáveis\nexplicativas?', fillcolor = '#4ECDC4', shape = diamond]
+  Q3 [label = 'Tem variáveis\nexplicativas?', fillcolor = '#4ECDC4', shape = diamond]
+
+  PCA [label = 'PCA\n(não-restrita)', fillcolor = '#95E1D3']
+  RDA [label = 'RDA\n(restrita)', fillcolor = '#38A3A5']
+  DCA [label = 'DCA/NMDS\n(não-restrita)', fillcolor = '#95E1D3']
+  CCA [label = 'CCA\n(restrita)', fillcolor = '#38A3A5']
+
+  START -> Q1
+  Q1 -> Q2 [label = 'Sim']
+  Q1 -> Q3 [label = 'Não']
+  Q2 -> PCA [label = 'Não']
+  Q2 -> RDA [label = 'Sim']
+  Q3 -> DCA [label = 'Não']
+  Q3 -> CCA [label = 'Sim']
+}
+")
+```
+
+## RDA - Análise de Redundância
+
+**Quando:** Gradientes CURTOS (\< 3 SD)
+
+**O que faz:**
+
+-   **PCA ambiental:** descreve como as parcelas diferem no ambiente
+-   **RDA:** testa se essas diferenças ambientais explicam a vegetação
+
+**Pergunta-chave:** As variáveis ambientais medidas explicam a composição de espécies?
+
+**Resultado:** R² = proporção da variação da comunidade explicada pelo ambiente
+
+## RDA na Prática
+
+```{r}
+# Verificar se gradiente é curto (do DCA anterior)
+# Se DCA1 < 3 SD → usar RDA ✓
+
+# Executar RDA
+# Usar fórmula com ~ . para incluir todas as variáveis
+# Ou especificar variáveis específicas
+rda_result <- rda(matriz ~ ., data = amb)
+
+# Ver resultados
+rda_result
+
+```
+
+## Entendendo o Output do RDA
+
+**Partição da Inércia:**
+
+-   **Total** = Variação total nos dados
+-   **Constrained** = Explicada pelas variáveis (IMPORTANTE!)
+-   **Unconstrained** = Não explicada (resíduo)
+
+**R² ajustado:** Proporção da variação explicada (corrigido para nº de variáveis)
+
+*Importante:* Use R² ajustado para comparar modelos com diferentes números de variáveis
+
+## Teste de Significância do RDA
+
+```{r, eval=FALSE}
+# Teste de permutação para o modelo completo
+anova_rda <- anova.cca(rda_result, permutations = 999)
+anova_rda
+
+# Teste para cada variável
+anova_rda_terms <- anova.cca(rda_result, by = "terms", permutations = 999)
+anova_rda_terms
+
+# Teste para cada eixo
+anova_rda_axis <- anova.cca(rda_result, by = "axis", permutations = 999)
+anova_rda_axis
+```
+
+**p \< 0.05?** → Modelo/variável/eixo É significativo!
+
+## Interpretando os Testes de Permutação
+
+**1. Modelo completo (anova.cca)** - Testa se as variáveis **em conjunto** explicam a vegetação - p \< 0.05 → modelo significativo ✓
+
+**2. Por variável (by = "terms")** - Testa cada variável **individualmente** - Identifica quais variáveis são importantes - Use para **simplificar o modelo**
+
+**3. Por eixo (by = "axis")** - Testa se cada eixo canônico é significativo - Quantos gradientes ambientais são importantes? - Importante para decidir **quantos eixos interpretar**
+
+## Interpretando o Triplot RDA
+
+**3 Tipos de elementos:**
+
+1.  **Parcelas (pontos)** → composição florística
+2.  **Espécies (texto)** → ocorrência/abundância
+3.  **Setas verdes** → gradientes ambientais
+
+**Como interpretar:**
+
+-   Parcelas próximas = composição similar
+-   Espécie próxima da seta = favorecida pela variável
+-   Seta longa = variável importante
+
+## Visualizar RDA - Triplot
+
+```{r}
+#| fig-width: 12
+#| fig-height: 9
+
+# Criar gráfico base
+plot(rda_result, type = "n",
+     main = "RDA - Vegetação ~ Ambiente")
+
+# Adicionar parcelas
+points(rda_result, display = "sites", pch = 19,
+       col = ifelse(exposicao == "Norte", "blue", "red"))
+
+# Adicionar espécies (principais)
+sp.names <- make.cepnames(colnames(matriz))
+text(rda_result, display = "species",
+     labels = sp.names,
+     cex = 0.6, col = "grey40")
+
+# Adicionar vetores ambientais
+text(rda_result, display = "bp",
+     col = "darkgreen", cex = 0.9, lwd = 2)
+
+legend("topright", legend = c("Norte", "Sul"),
+       col = c("blue", "red"), pch = 19)
+```
+
+## Seleção de Variáveis no RDA
+
+**Problema:** Muitas variáveis podem causar overfitting
+
+**Solução:** Seleção forward
+
+```{r, eval=FALSE}
+# Modelo nulo (sem preditoras)
+rda_null <- rda(matriz ~ 1, data = amb)
+
+# Modelo completo (todas preditoras)
+rda_full <- rda(matriz ~ ., data = amb)
+
+# Seleção forward
+rda_select <- ordistep(rda_null,
+                       scope = formula(rda_full),
+                       direction = "forward",
+                       permutations = 999)
+
+# Ver variáveis selecionadas
+rda_select$anova
+```
+
+## CCA - Análise de Correspondência Canônica
+
+**Canonical Correspondence Analysis - versão restrita da CA**
+
+**Quando usar:**
+
+-   Gradientes LONGOS (\> 4 SD)
+-   Dados de vegetação com muitos zeros
+-   Variáveis ambientais como preditoras
+-   Relações unimodais espécie-ambiente
+
+**Ideia básica: CA que maximiza relação com variáveis ambientais**
+
+## CCA vs RDA - Diferença Crucial
+
+**Tipo de resposta das espécies:**
+
+-   **RDA:** Resposta LINEAR
+    -   Espécie aumenta continuamente com a variável
+    -   Exemplo: umidade sempre favorece *Ilex paraguariensis*
+-   **CCA:** Resposta UNIMODAL
+    -   Espécie tem ótimo em valor intermediário
+    -   Exemplo: *Araucaria angustifolia* prefere pH \~5.5
+
+**Na prática:** CCA mais realista para gradientes longos!
+
+## CCA na Prática
+
+```{r}
+# Verificar se gradiente é longo (do DCA anterior)
+# Se DCA1 > 4 SD → usar CCA ✓
+
+# Executar CCA
+cca_result <- cca(matriz ~ ., data = amb)
+
+# Ver resultados
+cca_result
+```
+
+## Entendendo o Output do CCA
+
+**Inércia:**
+
+-   **Total** = Variação total (qui-quadrado)
+-   **Constrained** = Explicada pelas variáveis
+-   **Unconstrained** = Não explicada (resíduo)
+
+**Diferença do RDA:** Usa distância qui-quadrado, não Euclidiana
+
+## Teste de Significância do CCA
+
+```{r, eval=FALSE}
+# Teste para o modelo completo
+anova_cca <- anova.cca(cca_result, permutations = 999)
+anova_cca
+
+# Teste para cada variável
+anova_cca_terms <- anova.cca(cca_result, by = "terms", permutations = 999)
+anova_cca_terms
+
+# Teste para cada eixo
+anova_cca_axis <- anova.cca(cca_result, by = "axis", permutations = 999)
+anova_cca_axis
+```
+
+## Interpretando o CCA
+
+**Resposta unimodal das espécies:**
+
+-   Espécie no centro = valor ótimo intermediário
+-   Espécie na ponta = favorecida por valor extremo
+-   Posição na seta = preferência ambiental
+
+## Visualizar CCA - Triplot
+
+```{r}
+#| fig-width: 12
+#| fig-height: 9
+
+# Criar gráfico
+plot(cca_result, type = "n",
+     main = "CCA - Vegetação ~ Ambiente (Gradiente Longo)")
+
+# Parcelas
+points(cca_result, display = "sites", pch = 19,
+       col = ifelse(exposicao == "Norte", "blue", "red"))
+
+# Espécies (principais)
+sp.names <- make.cepnames(colnames(matriz))
+text(cca_result, display = "species",
+     labels = sp.names,
+     cex = 0.6, col = "grey40")
+
+# Vetores ambientais
+text(cca_result, display = "bp",
+     col = "darkgreen", cex = 0.9, lwd = 2)
+
+legend("topright", legend = c("Norte", "Sul"),
+       col = c("blue", "red"), pch = 19)
+```
+
+## Seleção de Variáveis no CCA
+
+```{r, eval=FALSE}
+# Modelo nulo
+cca_null <- cca(matriz ~ 1, data = amb)
+
+# Modelo completo
+cca_full <- cca(matriz ~ ., data = amb)
+
+# Seleção forward
+cca_select <- ordistep(cca_null,
+                       scope = formula(cca_full),
+                       direction = "forward",
+                       permutations = 999)
+
+# Ver variáveis selecionadas
+cca_select$anova
+```
+
+## Comparação: RDA vs CCA
+
+| Característica | RDA             | CCA               |
+|----------------|-----------------|-------------------|
+| Gradiente      | Curto (\< 3 SD) | Longo (\> 4 SD)   |
+| Resposta       | Linear          | Unimodal          |
+| Distância      | Euclidiana      | Qui-quadrado      |
+| Baseado em     | PCA             | CA                |
+| Zeros          | Problema        | Tolerado          |
+| Variação (%)   | R² ajustado     | Inércia explicada |
+
+**Regra prática:** DCA primeiro → se \< 3 SD use RDA, se \> 4 SD use CCA
+
+## 🧩 Partição da Variância
+
+**Pergunta central:** *Quanto cada grupo de variáveis explica da vegetação?*
+
+**Situação comum:**
+
+-   Dados de solo (pH, nutrientes)
+-   Dados de topografia (altitude, declividade)
+-   Dados espaciais (coordenadas)
+
+**Objetivo:** Separar efeitos independentes de cada grupo!
+
+## Por que Particionar?
+
+**Problema:** Variáveis correlacionadas confundem interpretação
+
+**Exemplo:**
+
+-   Altitude correlacionada com temperatura
+-   pH correlacionado com nutrientes
+-   Ambos explicam vegetação → mas quanto é único de cada?
+
+**Partição separa:**
+
+-   Efeito **puro** de cada grupo
+-   Efeito **compartilhado** entre grupos
+-   Variação **não explicada**
+
+## Estrutura da Partição - 2 Grupos
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+library(DiagrammeR)
+
+grViz("
+digraph particao {
+  graph [rankdir = LR, bgcolor = transparent]
+  node [shape = box, style = filled, fontname = Arial, fontsize = 10]
+
+  TOTAL [label = 'Variação TOTAL\n(100%)', fillcolor = '#E8E8E8']
+
+  A [label = '[a] Solo puro', fillcolor = '#FFB84D']
+  B [label = '[b] Compartilhado\nSolo + Topo', fillcolor = '#FF6B6B']
+  C [label = '[c] Topografia pura', fillcolor = '#4ECDC4']
+  D [label = '[d] Não explicado', fillcolor = '#95E1D3']
+
+  TOTAL -> A
+  TOTAL -> B
+  TOTAL -> C
+  TOTAL -> D
+}
+")
+```
+
+**\[a\]** = Efeito exclusivo do solo \| **\[b\]** = Efeito compartilhado \| **\[c\]** = Efeito exclusivo da topografia \| **\[d\]** = Outros fatores (dispersão, histórico, etc.)
+
+## Partição na Prática - Setup
+
+```{r}
+# Preparar grupos de variáveis
+# Verificar nomes das colunas disponíveis
+colnames(amb)
+
+# Criar grupos de variáveis
+solo <- amb[, c("ph", "P", "K", "Ca", "Mg", "MO")]
+topo <- amb[, c("cotmedia", "desmax", "decmed")]
+
+# Verificar
+head(solo, 2)
+head(topo, 2)
+
+```
+
+## Executar Partição com varpart()
+
+```{r}
+# Partição da variância
+# Escolher RDA ou CCA baseado no DCA
+# Aqui usamos RDA (assumindo gradiente curto)
+
+part_result <- varpart(matriz, solo, topo)
+
+# Ver resultados
+part_result
+```
+
+## Interpretando varpart()
+
+**Componentes da tabela:**
+
+-   **X1 (Individual)** = Efeito puro do SOLO \[a\]
+-   **X2 (Individual)** = Efeito puro da TOPOGRAFIA \[c\]
+-   **X1+X2 (Shared)** = Efeito COMPARTILHADO \[b\]
+-   **Residuals** = NÃO explicado \[d\]
+
+**Valores negativos?** → Artefato estatístico, considerar como zero
+
+## Visualizar Partição - Diagrama de Venn
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+
+# Plotar diagrama de Venn
+plot(part_result,
+     digits = 2,
+     bg = c("orange", "lightblue"),
+     Xnames = c("Solo", "Topografia"),
+     main = "Partição da Variância - Vegetação")
+```
+
+**Interpretação visual:** Círculos = grupos de variáveis \| Sobreposição = efeito compartilhado \| Fora dos círculos = não explicado
+
+## Exemplo de Interpretação Ecológica
+
+**Cenário hipotético dos nossos dados:**
+
+-   **\[a\] Solo puro = 13.6%** → Química do solo tem efeito independente
+-   **\[b\] Compartilhado = 18.44%** → Solo e altitude covariam
+-   **\[c\] Topografia pura = 8%** → Altitude tem efeito menor mas único
+-   **\[d\] Não explicado = 81.56%** → Outros fatores importantes!
+
+**Conclusão:** Solo é mais importante que topografia para explicar composição florística
+
+## Quando Usar Partição?
+
+**✅ Use quando:**
+
+-   Tem múltiplos grupos de variáveis ambientais
+-   Variáveis podem estar correlacionadas
+-   Quer separar efeitos independentes
+-   Precisa quantificar importância relativa
+
+**⚠️ Cuidados:**
+
+-   Muitas variáveis → overfitting
+-   Selecione variáveis importantes antes (RDA/CCA com forward selection)
+-   Valores negativos = considerar zero
+-   Testar significância das frações
+
+## Fluxo Completo de Análise
+
+**Passo a passo recomendado:**
+
+1.  **DCA** → Verificar comprimento do gradiente
+2.  **RDA ou CCA** → Testar modelo completo
+3.  **Forward selection** → Selecionar variáveis importantes
+4.  **Partição** → Separar efeitos de grupos de variáveis
+5.  **Interpretar** → Conclusões ecológicas
+
+## Resumo dos Métodos
+
+**Exploração:**
+
+-   **PCA** (curto): Padrões ambientais
+-   **DCA** (longo): Diagnóstico, retorna SD
+-   **NMDS**: Dissimilaridade (stress \< 0.2)
+
+**Teste:**
+
+-   **RDA** (curto): Ambiente explica vegetação? (R²)
+-   **CCA** (longo): Idem, para gradientes longos
+-   **varpart**: Quanto cada grupo explica?
+
+## Resumo Final: Escolha do Método 🎯
+
+**Fluxograma de decisão:**
+
+1.  **Rode DCA primeiro!**
+    -   \< 3 SD → métodos lineares (PCA/RDA)
+    -   \> 4 SD → métodos unimodais (CA/CCA)
+2.  **Tem variáveis explicativas?**
+    -   NÃO → ordenação não-restrita (PCA/DCA/NMDS)
+    -   SIM → ordenação restrita (RDA/CCA)
+3.  **Múltiplos grupos de variáveis?**
+    -   SIM → Partição da variância
+
+## Workflow Recomendado 📋
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6.5
+
+library(DiagrammeR)
+
+grViz("
+digraph workflow {
+  graph [rankdir = TB, bgcolor = transparent]
+  node [shape = box, style = filled, fontname = Arial, fontsize = 9]
+
+  START [label = '1. Carregar dados\nveg + ambiente', fillcolor = '#E8E8E8']
+  DCA [label = '2. DCA\nDiagnóstico gradiente', fillcolor = '#FFE66D']
+  DECISAO [label = 'Gradiente < 3 SD?', fillcolor = '#FF6B6B', shape = diamond]
+
+  CURTO1 [label = '3a. Exploração\nPCA/NMDS', fillcolor = '#95E1D3']
+  CURTO2 [label = '4a. Teste\nRDA + forward', fillcolor = '#4ECDC4']
+
+  LONGO1 [label = '3b. Exploração\nDCA/NMDS', fillcolor = '#95E1D3']
+  LONGO2 [label = '4b. Teste\nCCA + forward', fillcolor = '#4ECDC4']
+
+  PART [label = '5. Partição\nvarpart()', fillcolor = '#A8E6CF']
+  INTER [label = '6. Interpretação\necológica', fillcolor = '#FFD3B6', shape = ellipse]
+
+  START -> DCA
+  DCA -> DECISAO
+  DECISAO -> CURTO1 [label = 'Sim']
+  DECISAO -> LONGO1 [label = 'Não']
+  CURTO1 -> CURTO2
+  LONGO1 -> LONGO2
+  CURTO2 -> PART
+  LONGO2 -> PART
+  PART -> INTER
+}
+")
+```
+
 
 ## Obrigado!
 
 **Boas análises!** 🌳📊
 
+
+**Contato:** Pedro Higuchi \| UDESC Lages-SC

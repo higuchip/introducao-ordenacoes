@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.7.32">
 
   <meta name="author" content="Pedro Higuchi">
-  <meta name="dcterms.date" content="2025-11-04">
+  <meta name="dcterms.date" content="2025-11-12">
   <title>Introdução às Ordenações</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -213,18 +213,25 @@ Pedro Higuchi
     </div>
 </div>
 
-  <p class="date">2025-11-04</p>
+  <p class="date">2025-11-12</p>
 </section>
-<section id="o-que-vamos-aprender-hoje" class="slide level2">
-<h2>O que vamos aprender hoje?</h2>
+<section id="o-que-vamos-aprender" class="slide level2">
+<h2>O que vamos aprender ?</h2>
+<p><strong>Ordenações Não-Restritas (exploração):</strong></p>
 <ul>
-<li><p>O que é ordenação e para que serve</p></li>
-<li><p>Como visualizar dados complexos</p></li>
-<li><p>Três técnicas básicas: PCA, DCA e NMDS</p></li>
-<li><p>Qual método usar em cada situação</p></li>
-<li><p>Prática com dados reais da Floresta com Araucária</p></li>
+<li>PCA, DCA, NMDS, PCoA</li>
 </ul>
-<p><strong>Objetivo: Tornar dados complicados mais fáceis de entender!</strong> 📊→📈</p>
+<p><strong>Ordenações Restritas (teste de hipóteses):</strong></p>
+<ul>
+<li>RDA e CCA</li>
+</ul>
+<p><strong>Análises Avançadas:</strong></p>
+<ul>
+<li>Partição da variância</li>
+<li>Testes multivariados (PERMANOVA, betadisper)</li>
+</ul>
+<p><strong>Prática:</strong> Dados reais da Floresta com Araucária</p>
+<p><strong>Objetivo: Do básico ao avançado em análise multivariada!</strong> 📊→📈</p>
 </section>
 <section id="o-problema" class="slide level2">
 <h2>O Problema</h2>
@@ -295,8 +302,8 @@ Pedro Higuchi
 <h2>Dois Tipos de Ordenação</h2>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div class="grViz html-widget html-fill-item" id="htmlwidget-0472a2396ac4b66e0774" style="width:960px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-0472a2396ac4b66e0774">{"x":{"diagram":"\ndigraph tipos {\n  graph [rankdir = LR, bgcolor = transparent]\n  node [shape = box, style = filled, fontname = Arial, fontsize = 14]\n  \n  A [label = \"Seus dados\", fillcolor = \"#2C5F2D\", fontcolor = white]\n  B [label = \"NÃO-RESTRITA\n\nBusca padrões\nlivremente\", fillcolor = \"lightblue\"]\n  C [label = \"RESTRITA\n\nTesta se variáveis\nexplicam padrões\", fillcolor = \"lightyellow\"]\n  \n  A -> B\n  A -> C\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-6df632d0cb9fb3d3c987" style="width:960px;height:384px;"></div>
+<script type="application/json" data-for="htmlwidget-6df632d0cb9fb3d3c987">{"x":{"diagram":"\ndigraph tipos {\n  graph [rankdir = LR, bgcolor = transparent]\n  node [shape = box, style = filled, fontname = Arial, fontsize = 14]\n  \n  A [label = \"Seus dados\", fillcolor = \"#2C5F2D\", fontcolor = white]\n  B [label = \"NÃO-RESTRITA\n\nBusca padrões\nlivremente\", fillcolor = \"lightblue\"]\n  C [label = \"RESTRITA\n\nTesta se variáveis\nexplicam padrões\", fillcolor = \"lightyellow\"]\n  \n  A -> B\n  A -> C\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><strong>Hoje vamos focar em ordenação NÃO-RESTRITA (exploração inicial)</strong></p>
@@ -585,133 +592,104 @@ attr(,"const")
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href=""></a><span class="co"># Fazer NMDS</span></span>
 <span id="cb19-2"><a href=""></a><span class="co"># Carregar dados de vegetação</span></span>
-<span id="cb19-3"><a href=""></a>veg <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">"../data/vegetation_data.csv"</span>, </span>
+<span id="cb19-3"><a href=""></a>veg <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">"../data/vegetation_data.csv"</span>,</span>
 <span id="cb19-4"><a href=""></a>                  <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">";"</span>, <span class="at">dec =</span> <span class="st">","</span>)</span>
 <span id="cb19-5"><a href=""></a></span>
 <span id="cb19-6"><a href=""></a><span class="co"># Criar matriz: parcelas (linhas) x espécies (colunas)</span></span>
 <span id="cb19-7"><a href=""></a>matriz <span class="ot">&lt;-</span> <span class="fu">as.data.frame.matrix</span>(<span class="fu">table</span>(veg<span class="sc">$</span>PC, veg<span class="sc">$</span>Species))</span>
 <span id="cb19-8"><a href=""></a></span>
-<span id="cb19-9"><a href=""></a></span>
-<span id="cb19-10"><a href=""></a>nmds_result <span class="ot">&lt;-</span> <span class="fu">metaMDS</span>(matriz, </span>
-<span id="cb19-11"><a href=""></a>                       <span class="at">k =</span> <span class="dv">2</span>,              <span class="co"># 2 dimensões</span></span>
-<span id="cb19-12"><a href=""></a>                       <span class="at">distance =</span> <span class="st">"bray"</span>,  <span class="co"># índice de Bray-Curtis</span></span>
-<span id="cb19-13"><a href=""></a>                       <span class="at">trymax =</span> <span class="dv">100</span>)       <span class="co"># tentativas</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-9"><a href=""></a><span class="co"># Criar variável de exposição</span></span>
+<span id="cb19-10"><a href=""></a><span class="co"># 17 parcelas Norte + 33 parcelas Sul = 50 parcelas total</span></span>
+<span id="cb19-11"><a href=""></a>exposicao <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">"Norte"</span>, <span class="dv">17</span>), <span class="fu">rep</span>(<span class="st">"Sul"</span>, <span class="dv">33</span>))</span>
+<span id="cb19-12"><a href=""></a></span>
+<span id="cb19-13"><a href=""></a>nmds_result <span class="ot">&lt;-</span> <span class="fu">metaMDS</span>(matriz,</span>
+<span id="cb19-14"><a href=""></a>                       <span class="at">k =</span> <span class="dv">2</span>,              <span class="co"># 2 dimensões</span></span>
+<span id="cb19-15"><a href=""></a>                       <span class="at">distance =</span> <span class="st">"bray"</span>,  <span class="co"># índice de Bray-Curtis</span></span>
+<span id="cb19-16"><a href=""></a>                       <span class="at">trymax =</span> <span class="dv">100</span>)       <span class="co"># tentativas</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Wisconsin double standardization
 Run 0 stress 0.2953069 
-Run 1 stress 0.3016858 
-Run 2 stress 0.2993289 
-Run 3 stress 0.3048612 
-Run 4 stress 0.2946375 
+Run 1 stress 0.2969591 
+Run 2 stress 0.2946395 
 ... New best solution
-... Procrustes: rmse 0.02626173  max resid 0.08936126 
-Run 5 stress 0.3042351 
-Run 6 stress 0.3074333 
-Run 7 stress 0.3061952 
-Run 8 stress 0.3068137 
-Run 9 stress 0.3038217 
-Run 10 stress 0.3057733 
-Run 11 stress 0.304079 
-Run 12 stress 0.3088808 
-Run 13 stress 0.2970068 
-Run 14 stress 0.2989307 
-Run 15 stress 0.3021531 
-Run 16 stress 0.2941708 
+... Procrustes: rmse 0.0265171  max resid 0.08937196 
+Run 3 stress 0.3060852 
+Run 4 stress 0.30622 
+Run 5 stress 0.3114901 
+Run 6 stress 0.2946375 
 ... New best solution
-... Procrustes: rmse 0.02121494  max resid 0.08175415 
-Run 17 stress 0.2970639 
-Run 18 stress 0.3145763 
-Run 19 stress 0.308688 
-Run 20 stress 0.3082099 
-Run 21 stress 0.3020509 
-Run 22 stress 0.3011894 
-Run 23 stress 0.2993296 
-Run 24 stress 0.2966206 
-Run 25 stress 0.3021882 
-Run 26 stress 0.3032483 
-Run 27 stress 0.2980336 
-Run 28 stress 0.3038578 
-Run 29 stress 0.2943433 
-... Procrustes: rmse 0.01401002  max resid 0.04430739 
-Run 30 stress 0.3256685 
-Run 31 stress 0.2987175 
-Run 32 stress 0.309435 
-Run 33 stress 0.300568 
-Run 34 stress 0.3041017 
-Run 35 stress 0.4025442 
-Run 36 stress 0.3011053 
-Run 37 stress 0.2942798 
-... Procrustes: rmse 0.01333577  max resid 0.0566984 
-Run 38 stress 0.3008965 
-Run 39 stress 0.3060888 
-Run 40 stress 0.3002176 
-Run 41 stress 0.3056191 
-Run 42 stress 0.307868 
-Run 43 stress 0.3004209 
-Run 44 stress 0.3003492 
-Run 45 stress 0.2976744 
-Run 46 stress 0.305457 
-Run 47 stress 0.3170575 
-Run 48 stress 0.3067136 
-Run 49 stress 0.2948976 
-Run 50 stress 0.3241337 
-Run 51 stress 0.3017046 
-Run 52 stress 0.2996457 
-Run 53 stress 0.2991676 
-Run 54 stress 0.3054177 
-Run 55 stress 0.2992782 
-Run 56 stress 0.3025877 
-Run 57 stress 0.3041073 
-Run 58 stress 0.3051942 
-Run 59 stress 0.3017183 
-Run 60 stress 0.3050231 
-Run 61 stress 0.2949491 
-Run 62 stress 0.2947023 
-Run 63 stress 0.3056935 
-Run 64 stress 0.3024503 
-Run 65 stress 0.2993158 
-Run 66 stress 0.3002 
-Run 67 stress 0.300611 
-Run 68 stress 0.3037464 
-Run 69 stress 0.3130873 
-Run 70 stress 0.2939518 
+... Procrustes: rmse 0.0005369238  max resid 0.002179912 
+... Similar to previous best
+Run 7 stress 0.3029819 
+Run 8 stress 0.3056149 
+Run 9 stress 0.2989338 
+Run 10 stress 0.2991449 
+Run 11 stress 0.3021164 
+Run 12 stress 0.2965245 
+Run 13 stress 0.3017007 
+Run 14 stress 0.299367 
+Run 15 stress 0.2992786 
+Run 16 stress 0.2939446 
 ... New best solution
-... Procrustes: rmse 0.0138983  max resid 0.07109317 
-Run 71 stress 0.3002976 
-Run 72 stress 0.3113144 
-Run 73 stress 0.299812 
-Run 74 stress 0.2941434 
-... Procrustes: rmse 0.01731421  max resid 0.07571074 
-Run 75 stress 0.300544 
-Run 76 stress 0.3091752 
-Run 77 stress 0.3073109 
-Run 78 stress 0.29923 
-Run 79 stress 0.2976706 
-Run 80 stress 0.2946911 
-Run 81 stress 0.2992165 
-Run 82 stress 0.3050065 
-Run 83 stress 0.2962577 
-Run 84 stress 0.2948835 
-Run 85 stress 0.3011789 
-Run 86 stress 0.2953795 
-Run 87 stress 0.3134278 
-Run 88 stress 0.3072854 
-Run 89 stress 0.3077079 
-Run 90 stress 0.3151903 
-Run 91 stress 0.3048457 
-Run 92 stress 0.3000929 
-Run 93 stress 0.3115287 
-Run 94 stress 0.3082956 
-Run 95 stress 0.2980844 
-Run 96 stress 0.2943502 
-... Procrustes: rmse 0.02431286  max resid 0.08094879 
-Run 97 stress 0.3059063 
-Run 98 stress 0.3034747 
-Run 99 stress 0.3017727 
-Run 100 stress 0.3097605 
-*** Best solution was not repeated -- monoMDS stopping criteria:
-    12: no. of iterations &gt;= maxit
-    88: stress ratio &gt; sratmax</code></pre>
+... Procrustes: rmse 0.01549058  max resid 0.07858078 
+Run 17 stress 0.3017203 
+Run 18 stress 0.2951847 
+Run 19 stress 0.3045032 
+Run 20 stress 0.3011684 
+Run 21 stress 0.2992507 
+Run 22 stress 0.3023938 
+Run 23 stress 0.3076788 
+Run 24 stress 0.3036767 
+Run 25 stress 0.2941875 
+... Procrustes: rmse 0.01824387  max resid 0.07602765 
+Run 26 stress 0.2991516 
+Run 27 stress 0.3002002 
+Run 28 stress 0.3010642 
+Run 29 stress 0.3192588 
+Run 30 stress 0.2976894 
+Run 31 stress 0.3026143 
+Run 32 stress 0.299426 
+Run 33 stress 0.3014875 
+Run 34 stress 0.3029777 
+Run 35 stress 0.299644 
+Run 36 stress 0.2941058 
+... Procrustes: rmse 0.01625912  max resid 0.07704 
+Run 37 stress 0.296844 
+Run 38 stress 0.3010604 
+Run 39 stress 0.3168067 
+Run 40 stress 0.3096472 
+Run 41 stress 0.3052914 
+Run 42 stress 0.2981839 
+Run 43 stress 0.2980335 
+Run 44 stress 0.2999218 
+Run 45 stress 0.3067347 
+Run 46 stress 0.2990168 
+Run 47 stress 0.300044 
+Run 48 stress 0.3008567 
+Run 49 stress 0.2962373 
+Run 50 stress 0.2984549 
+Run 51 stress 0.2977994 
+Run 52 stress 0.30012 
+Run 53 stress 0.3054439 
+Run 54 stress 0.3003888 
+Run 55 stress 0.3038481 
+Run 56 stress 0.2995684 
+Run 57 stress 0.3082838 
+Run 58 stress 0.310071 
+Run 59 stress 0.3012018 
+Run 60 stress 0.3038585 
+Run 61 stress 0.3100108 
+Run 62 stress 0.3085963 
+Run 63 stress 0.2942815 
+... Procrustes: rmse 0.02157841  max resid 0.07954243 
+Run 64 stress 0.3050001 
+Run 65 stress 0.3057248 
+Run 66 stress 0.2994357 
+Run 67 stress 0.2939443 
+... New best solution
+... Procrustes: rmse 0.0004467395  max resid 0.002287483 
+... Similar to previous best
+*** Best solution repeated 1 times</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href=""></a><span class="co"># Avaliar qualidade</span></span>
 <span id="cb21-2"><a href=""></a>stress <span class="ot">&lt;-</span> <span class="fu">round</span>(nmds_result<span class="sc">$</span>stress, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -738,68 +716,6 @@ Run 100 stress 0.3097605
 
 </div>
 <img data-src="ordenacoes_intro_files/figure-revealjs/unnamed-chunk-14-1.png" class="quarto-figure quarto-figure-center r-stretch" width="960"></section>
-<section id="comparação-dos-métodos" class="slide level2">
-<h2>Comparação dos Métodos</h2>
-<table class="caption-top">
-<thead>
-<tr class="header">
-<th>Característica</th>
-<th>PCA</th>
-<th>NMDS</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Dificuldade</td>
-<td>⭐ Fácil</td>
-<td>⭐⭐ Média</td>
-</tr>
-<tr class="even">
-<td>Dados ambientais</td>
-<td>✅ Ótimo</td>
-<td>⚠️ OK</td>
-</tr>
-<tr class="odd">
-<td>Dados vegetação</td>
-<td>❌ Ruim</td>
-<td>✅ Ótimo</td>
-</tr>
-<tr class="even">
-<td>Gradiente curto</td>
-<td>✅ Use</td>
-<td>⚠️ OK</td>
-</tr>
-<tr class="odd">
-<td>Gradiente longo</td>
-<td>❌ Não</td>
-<td>✅ Use</td>
-</tr>
-<tr class="even">
-<td>Flexibilidade</td>
-<td>Baixa</td>
-<td>Alta</td>
-</tr>
-<tr class="odd">
-<td>Medida qualidade</td>
-<td>Autovalores</td>
-<td>Stress</td>
-</tr>
-<tr class="even">
-<td>Pressuposições</td>
-<td>Linearidade</td>
-<td>Nenhuma</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="resumo" class="slide level2">
-<h2>Resumo</h2>
-<ul>
-<li><p>Ordenação resume dados complexos em 2-3 dimensões</p></li>
-<li><p><strong>PCA</strong> → dados ambientais, gradientes curtos</p></li>
-<li><p><strong>NMDS</strong> → mais flexível, avaliar pelo stress</p></li>
-</ul>
-</section>
 <section id="testando-diferenças-entre-grupos-no-pca" class="slide level2">
 <h2>Testando Diferenças Entre Grupos no PCA</h2>
 <p><strong>Pergunta: Os setores (Norte/Sul) diferem ao longo do gradiente ambiental?</strong></p>
@@ -823,23 +739,20 @@ W = 0.98054, p-value = 0.575</code></pre>
 <section id="comparando-setores---teste-t" class="slide level2">
 <h2>Comparando Setores - Teste t</h2>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href=""></a><span class="co"># Criar variável de exposição (exemplo)</span></span>
-<span id="cb26-2"><a href=""></a>exposicao <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"Norte"</span>, <span class="st">"Sul"</span>), <span class="at">each =</span> <span class="dv">25</span>)</span>
-<span id="cb26-3"><a href=""></a></span>
-<span id="cb26-4"><a href=""></a><span class="co"># Teste t</span></span>
-<span id="cb26-5"><a href=""></a><span class="fu">t.test</span>(PCA1 <span class="sc">~</span> exposicao)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href=""></a><span class="co"># Teste t (exposicao já foi criada anteriormente)</span></span>
+<span id="cb26-2"><a href=""></a><span class="fu">t.test</span>(PCA1 <span class="sc">~</span> exposicao)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Welch Two Sample t-test
 
 data:  PCA1 by exposicao
-t = -3.3522, df = 47.211, p-value = 0.001586
+t = -3.8256, df = 36.281, p-value = 0.0004957
 alternative hypothesis: true difference in means between group Norte and group Sul is not equal to 0
 95 percent confidence interval:
- -1.0741832 -0.2684969
+ -1.1656423 -0.3580773
 sample estimates:
 mean in group Norte   mean in group Sul 
-           -0.33567             0.33567 </code></pre>
+         -0.5028275           0.2590323 </code></pre>
 </div>
 </div>
 <p><strong>p &lt; 0.05?</strong> → Setores SÃO diferentes ambientalmente! ✓</p>
@@ -878,24 +791,24 @@ mean in group Norte   mean in group Sul
 ***VECTORS
 
             NMDS1    NMDS2     r2 Pr(&gt;r)    
-arg       0.67720 -0.73580 0.0677  0.188    
-ph        0.45286  0.89158 0.2604  0.002 ** 
-P         0.60982  0.79254 0.0940  0.101    
-K        -0.48328  0.87547 0.0632  0.230    
-Na        0.82465  0.56565 0.2185  0.005 ** 
-MO        0.98497  0.17274 0.2206  0.002 ** 
-hal      -0.60032 -0.79976 0.1129  0.069 .  
-Al       -0.18128 -0.98343 0.1050  0.087 .  
-Ca        0.62843  0.77787 0.0058  0.894    
-Mg        0.93011  0.36727 0.3081  0.001 ***
-CTCph7   -0.38187 -0.92421 0.0835  0.113    
-CTCef    -0.29910 -0.95422 0.1230  0.048 *  
-V         0.62152  0.78339 0.1240  0.047 *  
-SB        0.84242  0.53883 0.0578  0.264    
-cd       -0.31649 -0.94860 0.1568  0.016 *  
-cotmedia  0.43892 -0.89853 0.0736  0.157    
-desmax    0.66226  0.74928 0.2334  0.002 ** 
-decmed    0.46634  0.88460 0.2858  0.001 ***
+arg       0.67585 -0.73704 0.0673  0.212    
+ph        0.45901  0.88843 0.2624  0.003 ** 
+P         0.61134  0.79137 0.0938  0.092 .  
+K        -0.47699  0.87891 0.0624  0.216    
+Na        0.82661  0.56278 0.2196  0.004 ** 
+MO        0.98554  0.16946 0.2197  0.006 ** 
+hal      -0.60607 -0.79541 0.1138  0.050 *  
+Al       -0.18755 -0.98226 0.1054  0.066 .  
+Ca        0.63691  0.77094 0.0059  0.869    
+Mg        0.93145  0.36386 0.3095  0.001 ***
+CTCph7   -0.38939 -0.92107 0.0841  0.102    
+CTCef    -0.30622 -0.95196 0.1237  0.037 *  
+V         0.62692  0.77908 0.1250  0.041 *  
+SB        0.84558  0.53384 0.0582  0.246    
+cd       -0.32094 -0.94710 0.1566  0.027 *  
+cotmedia  0.42751 -0.90401 0.0734  0.153    
+desmax    0.66670  0.74532 0.2349  0.001 ***
+decmed    0.47218  0.88150 0.2873  0.001 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 Permutation: free
@@ -977,10 +890,10 @@ Permutation: free
 Number of permutations: 999
 
 adonis2(formula = matriz ~ exposicao, permutations = 999, method = "bray")
-         Df SumOfSqs      R2      F Pr(&gt;F)    
-Model     1   0.8372 0.06091 3.1132  0.001 ***
-Residual 48  12.9085 0.93909                  
-Total    49  13.7457 1.00000                  
+         Df SumOfSqs      R2     F Pr(&gt;F)    
+Model     1   1.1617 0.08451 4.431  0.001 ***
+Residual 48  12.5840 0.91549                 
+Total    49  13.7457 1.00000                 
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
@@ -1013,9 +926,9 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>Analysis of Variance Table
 
 Response: Distances
-          Df   Sum Sq  Mean Sq F value  Pr(&gt;F)  
-Groups     1 0.032074 0.032074  5.6796 0.02117 *
-Residuals 48 0.271072 0.005647                  
+          Df   Sum Sq  Mean Sq F value    Pr(&gt;F)    
+Groups     1 0.083215 0.083215  15.642 0.0002513 ***
+Residuals 48 0.255363 0.005320                      
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
@@ -1163,6 +1076,11 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <section id="pcoa-vs-nmds---diferenças-fundamentais" class="slide level2">
 <h2>PCoA vs NMDS - Diferenças Fundamentais</h2>
 <table class="caption-top">
+<colgroup>
+<col style="width: 32%">
+<col style="width: 34%">
+<col style="width: 32%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Característica</th>
@@ -1266,21 +1184,605 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p><strong>NMDS:</strong> - Solução iterativa (otimiza PCoA) - Avaliado por stress (&lt; 0.20) - Melhor representação visual - Aceita qualquer índice</p>
 <p><strong>Ambos:</strong> - Trabalham com matrizes de dissimilaridade - Espécies adicionadas por weighted averaging - Use Bray-Curtis para dados de vegetação</p>
 </section>
-<section id="próximos-passos" class="slide level2">
-<h2>Próximos Passos</h2>
-<p><strong>Para aprender mais:</strong></p>
+<section id="ordenações-restritas" class="slide level2">
+<h2>🔄 Ordenações Restritas</h2>
+<p><strong>Não-restritas:</strong> Exploram padrões (PCA, NMDS)</p>
+<p><strong>Restritas:</strong> Testam hipóteses (RDA, CCA)</p>
+<p><strong>Pergunta:</strong> Ambiente explica a vegetação?</p>
+</section>
+<section id="dca---diagnóstico-de-gradiente" class="slide level2">
+<h2>DCA - Diagnóstico de Gradiente 🎯</h2>
+<p><strong>Objetivo:</strong> Medir comprimento do gradiente</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href=""></a><span class="co"># Executar DCA</span></span>
+<span id="cb46-2"><a href=""></a>dca_result <span class="ot">&lt;-</span> <span class="fu">decorana</span>(matriz)</span>
+<span id="cb46-3"><a href=""></a></span>
+<span id="cb46-4"><a href=""></a><span class="co"># Extrair comprimento (em SD)</span></span>
+<span id="cb46-5"><a href=""></a><span class="fu">cat</span>(<span class="st">"DCA1:"</span>, <span class="fu">round</span>(dca_result<span class="sc">$</span>evals[<span class="dv">1</span>], <span class="dv">2</span>), <span class="st">"SD</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>DCA1: 0.43 SD</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href=""></a><span class="fu">cat</span>(<span class="st">"DCA2:"</span>, <span class="fu">round</span>(dca_result<span class="sc">$</span>evals[<span class="dv">2</span>], <span class="dv">2</span>), <span class="st">"SD</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>DCA2: 0.23 SD</code></pre>
+</div>
+</div>
+<p><strong>Regra:</strong> &lt; 3 SD = <strong>RDA</strong> | &gt; 4 SD = <strong>CCA</strong></p>
+<p><strong>💡 Execute DCA primeiro!</strong></p>
+</section>
+<section id="escolhendo-o-método-fluxograma" class="slide level2">
+<h2>Escolhendo o Método: Fluxograma 📊</h2>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="grViz html-widget html-fill-item" id="htmlwidget-dbe5104992de525f6ce3" style="width:864px;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-dbe5104992de525f6ce3">{"x":{"diagram":"\ndigraph escolha {\n  graph [rankdir = TB, bgcolor = transparent]\n  node [shape = box, style = filled, fontname = Arial, fontsize = 11]\n\n  START [label = \"Rode DCA primeiro!\", fillcolor = \"#FF6B6B\", fontcolor = white]\n  Q1 [label = \"Gradiente < 3 SD?\", fillcolor = \"#FFE66D\", shape = diamond]\n  Q2 [label = \"Tem variáveis\nexplicativas?\", fillcolor = \"#4ECDC4\", shape = diamond]\n  Q3 [label = \"Tem variáveis\nexplicativas?\", fillcolor = \"#4ECDC4\", shape = diamond]\n\n  PCA [label = \"PCA\n(não-restrita)\", fillcolor = \"#95E1D3\"]\n  RDA [label = \"RDA\n(restrita)\", fillcolor = \"#38A3A5\"]\n  DCA [label = \"DCA/NMDS\n(não-restrita)\", fillcolor = \"#95E1D3\"]\n  CCA [label = \"CCA\n(restrita)\", fillcolor = \"#38A3A5\"]\n\n  START -> Q1\n  Q1 -> Q2 [label = \"Sim\"]\n  Q1 -> Q3 [label = \"Não\"]\n  Q2 -> PCA [label = \"Não\"]\n  Q2 -> RDA [label = \"Sim\"]\n  Q3 -> DCA [label = \"Não\"]\n  Q3 -> CCA [label = \"Sim\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="rda---análise-de-redundância" class="slide level2">
+<h2>RDA - Análise de Redundância</h2>
+<p><strong>Quando:</strong> Gradientes CURTOS (&lt; 3 SD)</p>
+<p><strong>O que faz:</strong></p>
 <ul>
-<li>Ordenações restritas (RDA, CCA)</li>
-<li>Partição de variância</li>
+<li><strong>PCA ambiental:</strong> descreve como as parcelas diferem no ambiente</li>
+<li><strong>RDA:</strong> testa se essas diferenças ambientais explicam a vegetação</li>
 </ul>
-<p><strong>Contato:</strong></p>
-<p>📧 Prof.&nbsp;Pedro Higuchi</p>
-<p>🏫 UDESC - Lages/SC</p>
-<p>🌲 Lab. Dendrologia e Fitossociologia</p>
+<p><strong>Pergunta-chave:</strong> As variáveis ambientais medidas explicam a composição de espécies?</p>
+<p><strong>Resultado:</strong> R² = proporção da variação da comunidade explicada pelo ambiente</p>
+</section>
+<section id="rda-na-prática" class="slide level2">
+<h2>RDA na Prática</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href=""></a><span class="co"># Verificar se gradiente é curto (do DCA anterior)</span></span>
+<span id="cb50-2"><a href=""></a><span class="co"># Se DCA1 &lt; 3 SD → usar RDA ✓</span></span>
+<span id="cb50-3"><a href=""></a></span>
+<span id="cb50-4"><a href=""></a><span class="co"># Executar RDA</span></span>
+<span id="cb50-5"><a href=""></a><span class="co"># Usar fórmula com ~ . para incluir todas as variáveis</span></span>
+<span id="cb50-6"><a href=""></a><span class="co"># Ou especificar variáveis específicas</span></span>
+<span id="cb50-7"><a href=""></a>rda_result <span class="ot">&lt;-</span> <span class="fu">rda</span>(matriz <span class="sc">~</span> ., <span class="at">data =</span> amb)</span>
+<span id="cb50-8"><a href=""></a></span>
+<span id="cb50-9"><a href=""></a><span class="co"># Ver resultados</span></span>
+<span id="cb50-10"><a href=""></a>rda_result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call: rda(formula = matriz ~ arg + ph + P + K + Na + MO + hal + Al + Ca +
+Mg + CTCph7 + CTCef + V + SB + cd + cotmedia + desmax + decmed, data = amb)
+
+               Inertia Proportion Rank
+Total         139.0690     1.0000     
+Constrained    62.0802     0.4464   15
+Unconstrained  76.9888     0.5536   34
+
+Inertia is variance
+
+-- NOTE:
+Some constraints or conditions were aliased because they were redundant.
+This can happen if terms are constant or linearly dependent (collinear):
+'CTCph7', 'CTCef', 'SB'
+
+Eigenvalues for constrained axes:
+  RDA1   RDA2   RDA3   RDA4   RDA5   RDA6   RDA7   RDA8   RDA9  RDA10  RDA11 
+28.632 10.843  5.287  3.640  2.831  2.362  1.722  1.587  1.183  1.124  0.882 
+ RDA12  RDA13  RDA14  RDA15 
+ 0.726  0.516  0.456  0.289 
+
+Eigenvalues for unconstrained axes:
+   PC1    PC2    PC3    PC4    PC5    PC6    PC7    PC8 
+24.968  7.339  6.202  4.373  4.207  3.958  3.404  2.857 
+(Showing 8 of 34 unconstrained eigenvalues)</code></pre>
+</div>
+</div>
+</section>
+<section id="entendendo-o-output-do-rda" class="slide level2">
+<h2>Entendendo o Output do RDA</h2>
+<p><strong>Partição da Inércia:</strong></p>
+<ul>
+<li><strong>Total</strong> = Variação total nos dados</li>
+<li><strong>Constrained</strong> = Explicada pelas variáveis (IMPORTANTE!)</li>
+<li><strong>Unconstrained</strong> = Não explicada (resíduo)</li>
+</ul>
+<p><strong>R² ajustado:</strong> Proporção da variação explicada (corrigido para nº de variáveis)</p>
+<p><em>Importante:</em> Use R² ajustado para comparar modelos com diferentes números de variáveis</p>
+</section>
+<section id="teste-de-significância-do-rda" class="slide level2">
+<h2>Teste de Significância do RDA</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href=""></a><span class="co"># Teste de permutação para o modelo completo</span></span>
+<span id="cb52-2"><a href=""></a>anova_rda <span class="ot">&lt;-</span> <span class="fu">anova.cca</span>(rda_result, <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb52-3"><a href=""></a>anova_rda</span>
+<span id="cb52-4"><a href=""></a></span>
+<span id="cb52-5"><a href=""></a><span class="co"># Teste para cada variável</span></span>
+<span id="cb52-6"><a href=""></a>anova_rda_terms <span class="ot">&lt;-</span> <span class="fu">anova.cca</span>(rda_result, <span class="at">by =</span> <span class="st">"terms"</span>, <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb52-7"><a href=""></a>anova_rda_terms</span>
+<span id="cb52-8"><a href=""></a></span>
+<span id="cb52-9"><a href=""></a><span class="co"># Teste para cada eixo</span></span>
+<span id="cb52-10"><a href=""></a>anova_rda_axis <span class="ot">&lt;-</span> <span class="fu">anova.cca</span>(rda_result, <span class="at">by =</span> <span class="st">"axis"</span>, <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb52-11"><a href=""></a>anova_rda_axis</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>p &lt; 0.05?</strong> → Modelo/variável/eixo É significativo!</p>
+</section>
+<section id="interpretando-os-testes-de-permutação" class="slide level2">
+<h2>Interpretando os Testes de Permutação</h2>
+<p><strong>1. Modelo completo (anova.cca)</strong> - Testa se as variáveis <strong>em conjunto</strong> explicam a vegetação - p &lt; 0.05 → modelo significativo ✓</p>
+<p><strong>2. Por variável (by = “terms”)</strong> - Testa cada variável <strong>individualmente</strong> - Identifica quais variáveis são importantes - Use para <strong>simplificar o modelo</strong></p>
+<p><strong>3. Por eixo (by = “axis”)</strong> - Testa se cada eixo canônico é significativo - Quantos gradientes ambientais são importantes? - Importante para decidir <strong>quantos eixos interpretar</strong></p>
+</section>
+<section id="interpretando-o-triplot-rda" class="slide level2">
+<h2>Interpretando o Triplot RDA</h2>
+<p><strong>3 Tipos de elementos:</strong></p>
+<ol type="1">
+<li><strong>Parcelas (pontos)</strong> → composição florística</li>
+<li><strong>Espécies (texto)</strong> → ocorrência/abundância</li>
+<li><strong>Setas verdes</strong> → gradientes ambientais</li>
+</ol>
+<p><strong>Como interpretar:</strong></p>
+<ul>
+<li>Parcelas próximas = composição similar</li>
+<li>Espécie próxima da seta = favorecida pela variável</li>
+<li>Seta longa = variável importante</li>
+</ul>
+</section>
+<section id="visualizar-rda---triplot" class="slide level2">
+<h2>Visualizar RDA - Triplot</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href=""></a><span class="co"># Criar gráfico base</span></span>
+<span id="cb53-2"><a href=""></a><span class="fu">plot</span>(rda_result, <span class="at">type =</span> <span class="st">"n"</span>,</span>
+<span id="cb53-3"><a href=""></a>     <span class="at">main =</span> <span class="st">"RDA - Vegetação ~ Ambiente"</span>)</span>
+<span id="cb53-4"><a href=""></a></span>
+<span id="cb53-5"><a href=""></a><span class="co"># Adicionar parcelas</span></span>
+<span id="cb53-6"><a href=""></a><span class="fu">points</span>(rda_result, <span class="at">display =</span> <span class="st">"sites"</span>, <span class="at">pch =</span> <span class="dv">19</span>,</span>
+<span id="cb53-7"><a href=""></a>       <span class="at">col =</span> <span class="fu">ifelse</span>(exposicao <span class="sc">==</span> <span class="st">"Norte"</span>, <span class="st">"blue"</span>, <span class="st">"red"</span>))</span>
+<span id="cb53-8"><a href=""></a></span>
+<span id="cb53-9"><a href=""></a><span class="co"># Adicionar espécies (principais)</span></span>
+<span id="cb53-10"><a href=""></a>sp.names <span class="ot">&lt;-</span> <span class="fu">make.cepnames</span>(<span class="fu">colnames</span>(matriz))</span>
+<span id="cb53-11"><a href=""></a><span class="fu">text</span>(rda_result, <span class="at">display =</span> <span class="st">"species"</span>,</span>
+<span id="cb53-12"><a href=""></a>     <span class="at">labels =</span> sp.names,</span>
+<span id="cb53-13"><a href=""></a>     <span class="at">cex =</span> <span class="fl">0.6</span>, <span class="at">col =</span> <span class="st">"grey40"</span>)</span>
+<span id="cb53-14"><a href=""></a></span>
+<span id="cb53-15"><a href=""></a><span class="co"># Adicionar vetores ambientais</span></span>
+<span id="cb53-16"><a href=""></a><span class="fu">text</span>(rda_result, <span class="at">display =</span> <span class="st">"bp"</span>,</span>
+<span id="cb53-17"><a href=""></a>     <span class="at">col =</span> <span class="st">"darkgreen"</span>, <span class="at">cex =</span> <span class="fl">0.9</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb53-18"><a href=""></a></span>
+<span id="cb53-19"><a href=""></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Norte"</span>, <span class="st">"Sul"</span>),</span>
+<span id="cb53-20"><a href=""></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">pch =</span> <span class="dv">19</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="ordenacoes_intro_files/figure-revealjs/unnamed-chunk-33-1.png" class="quarto-figure quarto-figure-center r-stretch" width="1152"></section>
+<section id="seleção-de-variáveis-no-rda" class="slide level2">
+<h2>Seleção de Variáveis no RDA</h2>
+<p><strong>Problema:</strong> Muitas variáveis podem causar overfitting</p>
+<p><strong>Solução:</strong> Seleção forward</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href=""></a><span class="co"># Modelo nulo (sem preditoras)</span></span>
+<span id="cb54-2"><a href=""></a>rda_null <span class="ot">&lt;-</span> <span class="fu">rda</span>(matriz <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> amb)</span>
+<span id="cb54-3"><a href=""></a></span>
+<span id="cb54-4"><a href=""></a><span class="co"># Modelo completo (todas preditoras)</span></span>
+<span id="cb54-5"><a href=""></a>rda_full <span class="ot">&lt;-</span> <span class="fu">rda</span>(matriz <span class="sc">~</span> ., <span class="at">data =</span> amb)</span>
+<span id="cb54-6"><a href=""></a></span>
+<span id="cb54-7"><a href=""></a><span class="co"># Seleção forward</span></span>
+<span id="cb54-8"><a href=""></a>rda_select <span class="ot">&lt;-</span> <span class="fu">ordistep</span>(rda_null,</span>
+<span id="cb54-9"><a href=""></a>                       <span class="at">scope =</span> <span class="fu">formula</span>(rda_full),</span>
+<span id="cb54-10"><a href=""></a>                       <span class="at">direction =</span> <span class="st">"forward"</span>,</span>
+<span id="cb54-11"><a href=""></a>                       <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb54-12"><a href=""></a></span>
+<span id="cb54-13"><a href=""></a><span class="co"># Ver variáveis selecionadas</span></span>
+<span id="cb54-14"><a href=""></a>rda_select<span class="sc">$</span>anova</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="cca---análise-de-correspondência-canônica" class="slide level2">
+<h2>CCA - Análise de Correspondência Canônica</h2>
+<p><strong>Canonical Correspondence Analysis - versão restrita da CA</strong></p>
+<p><strong>Quando usar:</strong></p>
+<ul>
+<li>Gradientes LONGOS (&gt; 4 SD)</li>
+<li>Dados de vegetação com muitos zeros</li>
+<li>Variáveis ambientais como preditoras</li>
+<li>Relações unimodais espécie-ambiente</li>
+</ul>
+<p><strong>Ideia básica: CA que maximiza relação com variáveis ambientais</strong></p>
+</section>
+<section id="cca-vs-rda---diferença-crucial" class="slide level2">
+<h2>CCA vs RDA - Diferença Crucial</h2>
+<p><strong>Tipo de resposta das espécies:</strong></p>
+<ul>
+<li><strong>RDA:</strong> Resposta LINEAR
+<ul>
+<li>Espécie aumenta continuamente com a variável</li>
+<li>Exemplo: umidade sempre favorece <em>Ilex paraguariensis</em></li>
+</ul></li>
+<li><strong>CCA:</strong> Resposta UNIMODAL
+<ul>
+<li>Espécie tem ótimo em valor intermediário</li>
+<li>Exemplo: <em>Araucaria angustifolia</em> prefere pH ~5.5</li>
+</ul></li>
+</ul>
+<p><strong>Na prática:</strong> CCA mais realista para gradientes longos!</p>
+</section>
+<section id="cca-na-prática" class="slide level2">
+<h2>CCA na Prática</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href=""></a><span class="co"># Verificar se gradiente é longo (do DCA anterior)</span></span>
+<span id="cb55-2"><a href=""></a><span class="co"># Se DCA1 &gt; 4 SD → usar CCA ✓</span></span>
+<span id="cb55-3"><a href=""></a></span>
+<span id="cb55-4"><a href=""></a><span class="co"># Executar CCA</span></span>
+<span id="cb55-5"><a href=""></a>cca_result <span class="ot">&lt;-</span> <span class="fu">cca</span>(matriz <span class="sc">~</span> ., <span class="at">data =</span> amb)</span>
+<span id="cb55-6"><a href=""></a></span>
+<span id="cb55-7"><a href=""></a><span class="co"># Ver resultados</span></span>
+<span id="cb55-8"><a href=""></a>cca_result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call: cca(formula = matriz ~ arg + ph + P + K + Na + MO + hal + Al + Ca +
+Mg + CTCph7 + CTCef + V + SB + cd + cotmedia + desmax + decmed, data = amb)
+
+              Inertia Proportion Rank
+Total          4.8754     1.0000     
+Constrained    1.8475     0.3789   15
+Unconstrained  3.0279     0.6211   34
+
+Inertia is scaled Chi-square
+
+-- NOTE:
+Some constraints or conditions were aliased because they were redundant.
+This can happen if terms are constant or linearly dependent (collinear):
+'CTCph7', 'CTCef', 'SB'
+
+Eigenvalues for constrained axes:
+  CCA1   CCA2   CCA3   CCA4   CCA5   CCA6   CCA7   CCA8   CCA9  CCA10  CCA11 
+0.3695 0.2453 0.1842 0.1732 0.1363 0.1282 0.1133 0.1110 0.0782 0.0710 0.0617 
+ CCA12  CCA13  CCA14  CCA15 
+0.0599 0.0514 0.0380 0.0264 
+
+Eigenvalues for unconstrained axes:
+    CA1     CA2     CA3     CA4     CA5     CA6     CA7     CA8 
+0.28370 0.26022 0.22824 0.18884 0.17056 0.16189 0.13380 0.13327 
+(Showing 8 of 34 unconstrained eigenvalues)</code></pre>
+</div>
+</div>
+</section>
+<section id="entendendo-o-output-do-cca" class="slide level2">
+<h2>Entendendo o Output do CCA</h2>
+<p><strong>Inércia:</strong></p>
+<ul>
+<li><strong>Total</strong> = Variação total (qui-quadrado)</li>
+<li><strong>Constrained</strong> = Explicada pelas variáveis</li>
+<li><strong>Unconstrained</strong> = Não explicada (resíduo)</li>
+</ul>
+<p><strong>Diferença do RDA:</strong> Usa distância qui-quadrado, não Euclidiana</p>
+</section>
+<section id="teste-de-significância-do-cca" class="slide level2">
+<h2>Teste de Significância do CCA</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href=""></a><span class="co"># Teste para o modelo completo</span></span>
+<span id="cb57-2"><a href=""></a>anova_cca <span class="ot">&lt;-</span> <span class="fu">anova.cca</span>(cca_result, <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb57-3"><a href=""></a>anova_cca</span>
+<span id="cb57-4"><a href=""></a></span>
+<span id="cb57-5"><a href=""></a><span class="co"># Teste para cada variável</span></span>
+<span id="cb57-6"><a href=""></a>anova_cca_terms <span class="ot">&lt;-</span> <span class="fu">anova.cca</span>(cca_result, <span class="at">by =</span> <span class="st">"terms"</span>, <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb57-7"><a href=""></a>anova_cca_terms</span>
+<span id="cb57-8"><a href=""></a></span>
+<span id="cb57-9"><a href=""></a><span class="co"># Teste para cada eixo</span></span>
+<span id="cb57-10"><a href=""></a>anova_cca_axis <span class="ot">&lt;-</span> <span class="fu">anova.cca</span>(cca_result, <span class="at">by =</span> <span class="st">"axis"</span>, <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb57-11"><a href=""></a>anova_cca_axis</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="interpretando-o-cca" class="slide level2">
+<h2>Interpretando o CCA</h2>
+<p><strong>Resposta unimodal das espécies:</strong></p>
+<ul>
+<li>Espécie no centro = valor ótimo intermediário</li>
+<li>Espécie na ponta = favorecida por valor extremo</li>
+<li>Posição na seta = preferência ambiental</li>
+</ul>
+</section>
+<section id="visualizar-cca---triplot" class="slide level2">
+<h2>Visualizar CCA - Triplot</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href=""></a><span class="co"># Criar gráfico</span></span>
+<span id="cb58-2"><a href=""></a><span class="fu">plot</span>(cca_result, <span class="at">type =</span> <span class="st">"n"</span>,</span>
+<span id="cb58-3"><a href=""></a>     <span class="at">main =</span> <span class="st">"CCA - Vegetação ~ Ambiente (Gradiente Longo)"</span>)</span>
+<span id="cb58-4"><a href=""></a></span>
+<span id="cb58-5"><a href=""></a><span class="co"># Parcelas</span></span>
+<span id="cb58-6"><a href=""></a><span class="fu">points</span>(cca_result, <span class="at">display =</span> <span class="st">"sites"</span>, <span class="at">pch =</span> <span class="dv">19</span>,</span>
+<span id="cb58-7"><a href=""></a>       <span class="at">col =</span> <span class="fu">ifelse</span>(exposicao <span class="sc">==</span> <span class="st">"Norte"</span>, <span class="st">"blue"</span>, <span class="st">"red"</span>))</span>
+<span id="cb58-8"><a href=""></a></span>
+<span id="cb58-9"><a href=""></a><span class="co"># Espécies (principais)</span></span>
+<span id="cb58-10"><a href=""></a>sp.names <span class="ot">&lt;-</span> <span class="fu">make.cepnames</span>(<span class="fu">colnames</span>(matriz))</span>
+<span id="cb58-11"><a href=""></a><span class="fu">text</span>(cca_result, <span class="at">display =</span> <span class="st">"species"</span>,</span>
+<span id="cb58-12"><a href=""></a>     <span class="at">labels =</span> sp.names,</span>
+<span id="cb58-13"><a href=""></a>     <span class="at">cex =</span> <span class="fl">0.6</span>, <span class="at">col =</span> <span class="st">"grey40"</span>)</span>
+<span id="cb58-14"><a href=""></a></span>
+<span id="cb58-15"><a href=""></a><span class="co"># Vetores ambientais</span></span>
+<span id="cb58-16"><a href=""></a><span class="fu">text</span>(cca_result, <span class="at">display =</span> <span class="st">"bp"</span>,</span>
+<span id="cb58-17"><a href=""></a>     <span class="at">col =</span> <span class="st">"darkgreen"</span>, <span class="at">cex =</span> <span class="fl">0.9</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb58-18"><a href=""></a></span>
+<span id="cb58-19"><a href=""></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Norte"</span>, <span class="st">"Sul"</span>),</span>
+<span id="cb58-20"><a href=""></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>), <span class="at">pch =</span> <span class="dv">19</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="ordenacoes_intro_files/figure-revealjs/unnamed-chunk-37-1.png" class="quarto-figure quarto-figure-center r-stretch" width="1152"></section>
+<section id="seleção-de-variáveis-no-cca" class="slide level2">
+<h2>Seleção de Variáveis no CCA</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href=""></a><span class="co"># Modelo nulo</span></span>
+<span id="cb59-2"><a href=""></a>cca_null <span class="ot">&lt;-</span> <span class="fu">cca</span>(matriz <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> amb)</span>
+<span id="cb59-3"><a href=""></a></span>
+<span id="cb59-4"><a href=""></a><span class="co"># Modelo completo</span></span>
+<span id="cb59-5"><a href=""></a>cca_full <span class="ot">&lt;-</span> <span class="fu">cca</span>(matriz <span class="sc">~</span> ., <span class="at">data =</span> amb)</span>
+<span id="cb59-6"><a href=""></a></span>
+<span id="cb59-7"><a href=""></a><span class="co"># Seleção forward</span></span>
+<span id="cb59-8"><a href=""></a>cca_select <span class="ot">&lt;-</span> <span class="fu">ordistep</span>(cca_null,</span>
+<span id="cb59-9"><a href=""></a>                       <span class="at">scope =</span> <span class="fu">formula</span>(cca_full),</span>
+<span id="cb59-10"><a href=""></a>                       <span class="at">direction =</span> <span class="st">"forward"</span>,</span>
+<span id="cb59-11"><a href=""></a>                       <span class="at">permutations =</span> <span class="dv">999</span>)</span>
+<span id="cb59-12"><a href=""></a></span>
+<span id="cb59-13"><a href=""></a><span class="co"># Ver variáveis selecionadas</span></span>
+<span id="cb59-14"><a href=""></a>cca_select<span class="sc">$</span>anova</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="comparação-rda-vs-cca" class="slide level2">
+<h2>Comparação: RDA vs CCA</h2>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Característica</th>
+<th>RDA</th>
+<th>CCA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Gradiente</td>
+<td>Curto (&lt; 3 SD)</td>
+<td>Longo (&gt; 4 SD)</td>
+</tr>
+<tr class="even">
+<td>Resposta</td>
+<td>Linear</td>
+<td>Unimodal</td>
+</tr>
+<tr class="odd">
+<td>Distância</td>
+<td>Euclidiana</td>
+<td>Qui-quadrado</td>
+</tr>
+<tr class="even">
+<td>Baseado em</td>
+<td>PCA</td>
+<td>CA</td>
+</tr>
+<tr class="odd">
+<td>Zeros</td>
+<td>Problema</td>
+<td>Tolerado</td>
+</tr>
+<tr class="even">
+<td>Variação (%)</td>
+<td>R² ajustado</td>
+<td>Inércia explicada</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regra prática:</strong> DCA primeiro → se &lt; 3 SD use RDA, se &gt; 4 SD use CCA</p>
+</section>
+<section id="partição-da-variância" class="slide level2">
+<h2>🧩 Partição da Variância</h2>
+<p><strong>Pergunta central:</strong> <em>Quanto cada grupo de variáveis explica da vegetação?</em></p>
+<p><strong>Situação comum:</strong></p>
+<ul>
+<li>Dados de solo (pH, nutrientes)</li>
+<li>Dados de topografia (altitude, declividade)</li>
+<li>Dados espaciais (coordenadas)</li>
+</ul>
+<p><strong>Objetivo:</strong> Separar efeitos independentes de cada grupo!</p>
+</section>
+<section id="por-que-particionar" class="slide level2">
+<h2>Por que Particionar?</h2>
+<p><strong>Problema:</strong> Variáveis correlacionadas confundem interpretação</p>
+<p><strong>Exemplo:</strong></p>
+<ul>
+<li>Altitude correlacionada com temperatura</li>
+<li>pH correlacionado com nutrientes</li>
+<li>Ambos explicam vegetação → mas quanto é único de cada?</li>
+</ul>
+<p><strong>Partição separa:</strong></p>
+<ul>
+<li>Efeito <strong>puro</strong> de cada grupo</li>
+<li>Efeito <strong>compartilhado</strong> entre grupos</li>
+<li>Variação <strong>não explicada</strong></li>
+</ul>
+</section>
+<section id="estrutura-da-partição---2-grupos" class="slide level2">
+<h2>Estrutura da Partição - 2 Grupos</h2>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="grViz html-widget html-fill-item" id="htmlwidget-8c58995904d666058c7e" style="width:768px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-8c58995904d666058c7e">{"x":{"diagram":"\ndigraph particao {\n  graph [rankdir = LR, bgcolor = transparent]\n  node [shape = box, style = filled, fontname = Arial, fontsize = 10]\n\n  TOTAL [label = \"Variação TOTAL\n(100%)\", fillcolor = \"#E8E8E8\"]\n\n  A [label = \"[a] Solo puro\", fillcolor = \"#FFB84D\"]\n  B [label = \"[b] Compartilhado\nSolo + Topo\", fillcolor = \"#FF6B6B\"]\n  C [label = \"[c] Topografia pura\", fillcolor = \"#4ECDC4\"]\n  D [label = \"[d] Não explicado\", fillcolor = \"#95E1D3\"]\n\n  TOTAL -> A\n  TOTAL -> B\n  TOTAL -> C\n  TOTAL -> D\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p><strong>[a]</strong> = Efeito exclusivo do solo | <strong>[b]</strong> = Efeito compartilhado | <strong>[c]</strong> = Efeito exclusivo da topografia | <strong>[d]</strong> = Outros fatores (dispersão, histórico, etc.)</p>
+</section>
+<section id="partição-na-prática---setup" class="slide level2">
+<h2>Partição na Prática - Setup</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href=""></a><span class="co"># Preparar grupos de variáveis</span></span>
+<span id="cb60-2"><a href=""></a><span class="co"># Verificar nomes das colunas disponíveis</span></span>
+<span id="cb60-3"><a href=""></a><span class="fu">colnames</span>(amb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "arg"      "ph"       "P"        "K"        "Na"       "MO"      
+ [7] "hal"      "Al"       "Ca"       "Mg"       "CTCph7"   "CTCef"   
+[13] "V"        "SB"       "cd"       "cotmedia" "desmax"   "decmed"  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href=""></a><span class="co"># Criar grupos de variáveis</span></span>
+<span id="cb62-2"><a href=""></a>solo <span class="ot">&lt;-</span> amb[, <span class="fu">c</span>(<span class="st">"ph"</span>, <span class="st">"P"</span>, <span class="st">"K"</span>, <span class="st">"Ca"</span>, <span class="st">"Mg"</span>, <span class="st">"MO"</span>)]</span>
+<span id="cb62-3"><a href=""></a>topo <span class="ot">&lt;-</span> amb[, <span class="fu">c</span>(<span class="st">"cotmedia"</span>, <span class="st">"desmax"</span>, <span class="st">"decmed"</span>)]</span>
+<span id="cb62-4"><a href=""></a></span>
+<span id="cb62-5"><a href=""></a><span class="co"># Verificar</span></span>
+<span id="cb62-6"><a href=""></a><span class="fu">head</span>(solo, <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   ph   P  K  Ca  Mg  MO
+1 3.9 2.0 54 0.8 0.5 4.2
+2 4.2 1.7 95 2.8 1.2 7.3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href=""></a><span class="fu">head</span>(topo, <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  cotmedia desmax decmed
+1  1000.25      4      8
+2  1009.25      5      9</code></pre>
+</div>
+</div>
+</section>
+<section id="executar-partição-com-varpart" class="slide level2">
+<h2>Executar Partição com varpart()</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href=""></a><span class="co"># Partição da variância</span></span>
+<span id="cb66-2"><a href=""></a><span class="co"># Escolher RDA ou CCA baseado no DCA</span></span>
+<span id="cb66-3"><a href=""></a><span class="co"># Aqui usamos RDA (assumindo gradiente curto)</span></span>
+<span id="cb66-4"><a href=""></a></span>
+<span id="cb66-5"><a href=""></a>part_result <span class="ot">&lt;-</span> <span class="fu">varpart</span>(matriz, solo, topo)</span>
+<span id="cb66-6"><a href=""></a></span>
+<span id="cb66-7"><a href=""></a><span class="co"># Ver resultados</span></span>
+<span id="cb66-8"><a href=""></a>part_result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Partition of variance in RDA 
+
+Call: varpart(Y = matriz, X = solo, topo)
+
+Explanatory tables:
+X1:  solo
+X2:  topo 
+
+No. of explanatory tables: 2 
+Total variation (SS): 6814.4 
+            Variance: 139.07 
+No. of observations: 50 
+
+Partition table:
+                     Df R.squared Adj.R.squared Testable
+[a+c] = X1            6   0.24147       0.13563     TRUE
+[b+c] = X2            3   0.13997       0.08388     TRUE
+[a+b+c] = X1+X2       9   0.33421       0.18440     TRUE
+Individual fractions                                    
+[a] = X1|X2           6                 0.10052     TRUE
+[b] = X2|X1           3                 0.04877     TRUE
+[c]                   0                 0.03511    FALSE
+[d] = Residuals                         0.81560    FALSE
+---
+Use function 'rda' to test significance of fractions of interest</code></pre>
+</div>
+</div>
+</section>
+<section id="interpretando-varpart" class="slide level2">
+<h2>Interpretando varpart()</h2>
+<p><strong>Componentes da tabela:</strong></p>
+<ul>
+<li><strong>X1 (Individual)</strong> = Efeito puro do SOLO [a]</li>
+<li><strong>X2 (Individual)</strong> = Efeito puro da TOPOGRAFIA [c]</li>
+<li><strong>X1+X2 (Shared)</strong> = Efeito COMPARTILHADO [b]</li>
+<li><strong>Residuals</strong> = NÃO explicado [d]</li>
+</ul>
+<p><strong>Valores negativos?</strong> → Artefato estatístico, considerar como zero</p>
+</section>
+<section id="visualizar-partição---diagrama-de-venn" class="slide level2">
+<h2>Visualizar Partição - Diagrama de Venn</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href=""></a><span class="co"># Plotar diagrama de Venn</span></span>
+<span id="cb68-2"><a href=""></a><span class="fu">plot</span>(part_result,</span>
+<span id="cb68-3"><a href=""></a>     <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb68-4"><a href=""></a>     <span class="at">bg =</span> <span class="fu">c</span>(<span class="st">"orange"</span>, <span class="st">"lightblue"</span>),</span>
+<span id="cb68-5"><a href=""></a>     <span class="at">Xnames =</span> <span class="fu">c</span>(<span class="st">"Solo"</span>, <span class="st">"Topografia"</span>),</span>
+<span id="cb68-6"><a href=""></a>     <span class="at">main =</span> <span class="st">"Partição da Variância - Vegetação"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="ordenacoes_intro_files/figure-revealjs/unnamed-chunk-42-1.png" class="quarto-figure quarto-figure-center r-stretch" width="960"><p><strong>Interpretação visual:</strong> Círculos = grupos de variáveis | Sobreposição = efeito compartilhado | Fora dos círculos = não explicado</p>
+</section>
+<section id="exemplo-de-interpretação-ecológica" class="slide level2">
+<h2>Exemplo de Interpretação Ecológica</h2>
+<p><strong>Cenário hipotético dos nossos dados:</strong></p>
+<ul>
+<li><strong>[a] Solo puro = 13.6%</strong> → Química do solo tem efeito independente</li>
+<li><strong>[b] Compartilhado = 18.44%</strong> → Solo e altitude covariam</li>
+<li><strong>[c] Topografia pura = 8%</strong> → Altitude tem efeito menor mas único</li>
+<li><strong>[d] Não explicado = 81.56%</strong> → Outros fatores importantes!</li>
+</ul>
+<p><strong>Conclusão:</strong> Solo é mais importante que topografia para explicar composição florística</p>
+</section>
+<section id="quando-usar-partição" class="slide level2">
+<h2>Quando Usar Partição?</h2>
+<p><strong>✅ Use quando:</strong></p>
+<ul>
+<li>Tem múltiplos grupos de variáveis ambientais</li>
+<li>Variáveis podem estar correlacionadas</li>
+<li>Quer separar efeitos independentes</li>
+<li>Precisa quantificar importância relativa</li>
+</ul>
+<p><strong>⚠️ Cuidados:</strong></p>
+<ul>
+<li>Muitas variáveis → overfitting</li>
+<li>Selecione variáveis importantes antes (RDA/CCA com forward selection)</li>
+<li>Valores negativos = considerar zero</li>
+<li>Testar significância das frações</li>
+</ul>
+</section>
+<section id="fluxo-completo-de-análise" class="slide level2">
+<h2>Fluxo Completo de Análise</h2>
+<p><strong>Passo a passo recomendado:</strong></p>
+<ol type="1">
+<li><strong>DCA</strong> → Verificar comprimento do gradiente</li>
+<li><strong>RDA ou CCA</strong> → Testar modelo completo</li>
+<li><strong>Forward selection</strong> → Selecionar variáveis importantes</li>
+<li><strong>Partição</strong> → Separar efeitos de grupos de variáveis</li>
+<li><strong>Interpretar</strong> → Conclusões ecológicas</li>
+</ol>
+</section>
+<section id="resumo-dos-métodos" class="slide level2">
+<h2>Resumo dos Métodos</h2>
+<p><strong>Exploração:</strong></p>
+<ul>
+<li><strong>PCA</strong> (curto): Padrões ambientais</li>
+<li><strong>DCA</strong> (longo): Diagnóstico, retorna SD</li>
+<li><strong>NMDS</strong>: Dissimilaridade (stress &lt; 0.2)</li>
+</ul>
+<p><strong>Teste:</strong></p>
+<ul>
+<li><strong>RDA</strong> (curto): Ambiente explica vegetação? (R²)</li>
+<li><strong>CCA</strong> (longo): Idem, para gradientes longos</li>
+<li><strong>varpart</strong>: Quanto cada grupo explica?</li>
+</ul>
+</section>
+<section id="resumo-final-escolha-do-método" class="slide level2">
+<h2>Resumo Final: Escolha do Método 🎯</h2>
+<p><strong>Fluxograma de decisão:</strong></p>
+<ol type="1">
+<li><strong>Rode DCA primeiro!</strong>
+<ul>
+<li>&lt; 3 SD → métodos lineares (PCA/RDA)</li>
+<li>&gt; 4 SD → métodos unimodais (CA/CCA)</li>
+</ul></li>
+<li><strong>Tem variáveis explicativas?</strong>
+<ul>
+<li>NÃO → ordenação não-restrita (PCA/DCA/NMDS)</li>
+<li>SIM → ordenação restrita (RDA/CCA)</li>
+</ul></li>
+<li><strong>Múltiplos grupos de variáveis?</strong>
+<ul>
+<li>SIM → Partição da variância</li>
+</ul></li>
+</ol>
+</section>
+<section id="workflow-recomendado" class="slide level2">
+<h2>Workflow Recomendado 📋</h2>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="grViz html-widget html-fill-item" id="htmlwidget-0f313ca87e16c3f64064" style="width:864px;height:624px;"></div>
+<script type="application/json" data-for="htmlwidget-0f313ca87e16c3f64064">{"x":{"diagram":"\ndigraph workflow {\n  graph [rankdir = TB, bgcolor = transparent]\n  node [shape = box, style = filled, fontname = Arial, fontsize = 9]\n\n  START [label = \"1. Carregar dados\nveg + ambiente\", fillcolor = \"#E8E8E8\"]\n  DCA [label = \"2. DCA\nDiagnóstico gradiente\", fillcolor = \"#FFE66D\"]\n  DECISAO [label = \"Gradiente < 3 SD?\", fillcolor = \"#FF6B6B\", shape = diamond]\n\n  CURTO1 [label = \"3a. Exploração\nPCA/NMDS\", fillcolor = \"#95E1D3\"]\n  CURTO2 [label = \"4a. Teste\nRDA + forward\", fillcolor = \"#4ECDC4\"]\n\n  LONGO1 [label = \"3b. Exploração\nDCA/NMDS\", fillcolor = \"#95E1D3\"]\n  LONGO2 [label = \"4b. Teste\nCCA + forward\", fillcolor = \"#4ECDC4\"]\n\n  PART [label = \"5. Partição\nvarpart()\", fillcolor = \"#A8E6CF\"]\n  INTER [label = \"6. Interpretação\necológica\", fillcolor = \"#FFD3B6\", shape = ellipse]\n\n  START -> DCA\n  DCA -> DECISAO\n  DECISAO -> CURTO1 [label = \"Sim\"]\n  DECISAO -> LONGO1 [label = \"Não\"]\n  CURTO1 -> CURTO2\n  LONGO1 -> LONGO2\n  CURTO2 -> PART\n  LONGO2 -> PART\n  PART -> INTER\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
 </section>
 <section id="obrigado" class="slide level2">
 <h2>Obrigado!</h2>
 <p><strong>Boas análises!</strong> 🌳📊</p>
+<p><strong>Contato:</strong> Pedro Higuchi | UDESC Lages-SC</p>
 
 </section>
     </div>
