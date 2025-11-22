@@ -1,14 +1,23 @@
-# Introdução às Ordenações
-
-> Material didático sobre análises de ordenação (PCA, NMDS, PCoA) para dados de vegetação
-
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![R](https://img.shields.io/badge/R-%3E%3D%204.0.0-276DC3?logo=r)](https://www.r-project.org/)
-[![Quarto](https://img.shields.io/badge/Quarto-1.3+-75AADB?logo=quarto)](https://quarto.org)
-[![UDESC](https://img.shields.io/badge/UDESC-Lages%20SC-004d40)](https://www.udesc.br)
-[![Material Didático](https://img.shields.io/badge/Tipo-Material%20Didático-blueviolet)]()
-[![Português](https://img.shields.io/badge/Idioma-Português-green)]()
-[![Slides](https://img.shields.io/badge/Slides-Online-orange)](https://seu-usuario.github.io/introducao-ordenacoes/)
+<table border="0">
+  <tr>
+    <td width="75%">
+      <h1>Introdução às Ordenações</h1>
+      <p><b>Material didático sobre análises de ordenação (PCA, NMDS, PCoA) para dados de vegetação</b></p>
+      <p>
+        <a href="https://creativecommons.org/licenses/by/4.0/"><img src="https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg" alt="License: CC BY 4.0"></a>
+        <a href="https://www.r-project.org/"><img src="https://img.shields.io/badge/R-%3E%3D%204.0.0-276DC3?logo=r" alt="R"></a>
+        <a href="https://quarto.org"><img src="https://img.shields.io/badge/Quarto-1.3+-75AADB?logo=quarto" alt="Quarto"></a>
+        <a href="https://www.udesc.br"><img src="https://img.shields.io/badge/UDESC-Lages%20SC-004d40" alt="UDESC"></a>
+        <img src="https://img.shields.io/badge/Tipo-Material%20Didático-blueviolet" alt="Material Didático">
+        <img src="https://img.shields.io/badge/Idioma-Português-green" alt="Português">
+        <a href="https://seu-usuario.github.io/introducao-ordenacoes/"><img src="https://img.shields.io/badge/Slides-Online-orange" alt="Slides"></a>
+      </p>
+    </td>
+    <td width="25%" align="center">
+      <img src="assets/sticker.png" width="100%" alt="Sticker Introdução a Ordenações">
+    </td>
+  </tr>
+</table>
 
 ## 📚 Sobre
 
